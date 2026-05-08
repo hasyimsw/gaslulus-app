@@ -1,0 +1,118 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+model User {
+  id         BigInt     @id @default(autoincrement())
+  uuid       String     @unique @default(uuid())
+  role       Role       @default(USER)
+  name       String
+  email      String     @unique
+  password   String
+  createdAt  DateTime   @default(now()) @map("created_at")
+  results    Result[]
+  bookmarks  Bookmark[]
+
+  @@map("users")
+}
+
+model Exam {
+  id          BigInt     @id @default(autoincrement())
+  title       String
+  description String?    @db.Text
+  category    Category
+  subCategory String?    @map("sub_category")
+  totalQuestions Int     @map("total_questions")
+  duration    Int
+  passingScore Int       @default(60) @map("passing_score")
+  isPublished Boolean    @default(false) @map("is_published")
+  createdAt   DateTime   @default(now()) @map("created_at")
+  questions   Question[]
+  results     Result[]
+
+  @@map("exams")
+}
+
+model Question {
+  id          BigInt     @id @default(autoincrement())
+  examId      BigInt     @map("exam_id")
+  question    String     @db.Text
+  explanation String?    @db.Text
+  difficulty  Difficulty @default(MEDIUM)
+  createdAt   DateTime   @default(now()) @map("created_at")
+  exam        Exam       @relation(fields: [examId], references: [id], onDelete: Cascade)
+  options     Option[]
+  bookmarks   Bookmark[]
+
+  @@map("questions")
+}
+
+model Option {
+  id         BigInt   @id @default(autoincrement())
+  questionId BigInt   @map("question_id")
+  optionText String   @db.Text @map("option_text")
+  isCorrect  Boolean  @default(false) @map("is_correct")
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@map("options")
+}
+
+model Result {
+  id           BigInt    @id @default(autoincrement())
+  userId       BigInt    @map("user_id")
+  examId       BigInt    @map("exam_id")
+  score        Float
+  totalCorrect Int       @map("total_correct")
+  totalWrong   Int       @map("total_wrong")
+  totalSkipped Int       @default(0) @map("total_skipped")
+  durationUsed Int       @map("duration_used")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  exam         Exam      @relation(fields: [examId], references: [id], onDelete: Cascade)
+  history      History?
+
+  @@map("results")
+}
+
+model History {
+  id        BigInt   @id @default(autoincrement())
+  resultId  BigInt   @unique @map("result_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  result    Result   @relation(fields: [resultId], references: [id], onDelete: Cascade)
+
+  @@map("histories")
+}
+
+model Bookmark {
+  id         BigInt   @id @default(autoincrement())
+  userId     BigInt   @map("user_id")
+  questionId BigInt   @map("question_id")
+  createdAt  DateTime @default(now()) @map("created_at")
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, questionId])
+  @@map("bookmarks")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum Category {
+  SD
+  SMP
+  SMA
+  CPNS
+}
+
+enum Difficulty {
+  EASY
+  MEDIUM
+  HARD
+}
