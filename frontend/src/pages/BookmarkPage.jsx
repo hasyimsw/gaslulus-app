@@ -54,7 +54,22 @@ export default function BookmarkPage() {
 
       {loading ? (
         <div className="space-y-4">
-          {[1, 2, 3].map((i) => <Card key={i} className="h-24 animate-pulse bg-slate-50 border-none" />)}
+          {[1, 2, 3].map((i) => (
+            <Card key={i} className="p-6 flex items-start gap-6 animate-pulse">
+              <div className="flex-1 space-y-4">
+                <div className="flex gap-3">
+                  <div className="w-12 h-3 bg-slate-100 rounded" />
+                  <div className="w-24 h-3 bg-slate-100 rounded" />
+                </div>
+                <div className="w-full h-5 bg-slate-100 rounded" />
+                <div className="w-2/3 h-5 bg-slate-100 rounded" />
+              </div>
+              <div className="flex gap-2">
+                <div className="w-10 h-10 bg-slate-100 rounded-xl" />
+                <div className="w-10 h-10 bg-slate-100 rounded-xl" />
+              </div>
+            </Card>
+          ))}
         </div>
       ) : bookmarks.length === 0 ? (
         <Card className="text-center py-24 flex flex-col items-center">

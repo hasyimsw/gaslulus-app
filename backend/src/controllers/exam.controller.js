@@ -19,7 +19,7 @@ export const getExams = async (req, res, next) => {
       orderBy: { createdAt: 'desc' },
     });
 
-    return res.json({ success: true, data: exams.map(e => ({ ...e, id: e.id.toString() })) });
+    return res.json({ success: true, data: exams });
   } catch (error) {
     next(error);
   }
@@ -51,7 +51,6 @@ export const getSubjectsByCategory = async (req, res, next) => {
       success: true, 
       data: exams.map(e => ({ 
         ...e, 
-        id: e.id.toString(),
         subject: e.title, // Use title as subject for the frontend
         totalQuestions: e._count.questions
       }))
@@ -72,7 +71,7 @@ export const getExamById = async (req, res, next) => {
     });
     if (!exam) return res.status(404).json({ success: false, message: 'Ujian tidak ditemukan' });
 
-    return res.json({ success: true, data: { ...exam, id: exam.id.toString() } });
+    return res.json({ success: true, data: exam });
   } catch (error) {
     next(error);
   }
@@ -92,22 +91,10 @@ export const getExamQuestions = async (req, res, next) => {
       orderBy: { id: 'asc' }
     });
 
-    // Do not randomize, just limit to totalQuestions
-    const ordered = questions
-      .slice(0, exam.totalQuestions)
-      .map((q) => ({
-        ...q,
-        id: q.id.toString(),
-        examId: q.examId.toString(),
-        options: q.options.map((o) => ({
-            id: o.id.toString(),
-            questionId: o.questionId.toString(),
-            optionText: o.optionText,
-            isCorrect: o.isCorrect,
-          })),
-      }));
+    // Shuffle questions and limit to totalQuestions
+    const shuffled = questions.sort(() => Math.random() - 0.5).slice(0, exam.totalQuestions);
 
-    return res.json({ success: true, data: ordered, exam: { ...exam, id: exam.id.toString() } });
+    return res.json({ success: true, data: shuffled, exam });
   } catch (error) {
     next(error);
   }
@@ -172,7 +159,7 @@ export const submitExam = async (req, res, next) => {
       success: true,
       message: 'Ujian berhasil diselesaikan',
       data: {
-        resultId: result.id.toString(),
+        resultId: result.id,
         score,
         totalCorrect,
         totalWrong,
@@ -194,7 +181,7 @@ export const adminGetExams = async (req, res, next) => {
       include: { _count: { select: { questions: true, results: true } } },
       orderBy: { createdAt: 'desc' },
     });
-    return res.json({ success: true, data: exams.map(e => ({ ...e, id: e.id.toString() })) });
+    return res.json({ success: true, data: exams });
   } catch (error) {
     next(error);
   }
@@ -205,7 +192,7 @@ export const createExam = async (req, res, next) => {
   try {
     const data = examSchema.parse(req.body);
     const exam = await prisma.exam.create({ data });
-    return res.status(201).json({ success: true, message: 'Ujian berhasil dibuat', data: { ...exam, id: exam.id.toString() } });
+    return res.status(201).json({ success: true, message: 'Ujian berhasil dibuat', data: exam });
   } catch (error) {
     next(error);
   }
@@ -216,7 +203,7 @@ export const updateExam = async (req, res, next) => {
   try {
     const data = examSchema.partial().parse(req.body);
     const exam = await prisma.exam.update({ where: { id: BigInt(req.params.id) }, data });
-    return res.json({ success: true, message: 'Ujian berhasil diperbarui', data: { ...exam, id: exam.id.toString() } });
+    return res.json({ success: true, message: 'Ujian berhasil diperbarui', data: exam });
   } catch (error) {
     next(error);
   }
@@ -250,6 +237,16 @@ export const submitPractice = async (req, res, next) => {
       return res.status(404).json({ success: false, message: 'Kategori ujian tidak tersedia untuk simulasi' });
     }
 
+    if (!exam) {
+      // Fallback: If no simulation exists, find ANY exam of that category
+      const fallbackExam = await prisma.exam.findFirst({
+        where: { category, isPublished: true }
+      });
+      if (!fallbackExam) {
+        return res.status(404).json({ success: false, message: 'Kategori ujian tidak tersedia' });
+      }
+    }
+
     // Process answers and fetch questions
     const validAnswerIds = answers
       .filter(a => a.questionId)
@@ -260,8 +257,11 @@ export const submitPractice = async (req, res, next) => {
 
     const questions = await prisma.question.findMany({
       where: { id: { in: validAnswerIds } },
-      include: { options: { where: { isCorrect: true } } },
+      include: { options: { where: { isCorrect: true } }, exam: true },
     });
+
+    // Use the examId from the actual questions if possible, otherwise use reference simulation
+    const actualExamId = questions.length > 0 ? questions[0].examId : exam.id;
 
     let totalCorrect = 0;
     let totalWrong = 0;
@@ -297,7 +297,7 @@ export const submitPractice = async (req, res, next) => {
       const resData = await tx.result.create({
         data: {
           userId: req.user.id,
-          examId: exam.id,
+          examId: actualExamId,
           score: parseFloat(score),
           totalCorrect,
           totalWrong,
@@ -317,7 +317,7 @@ export const submitPractice = async (req, res, next) => {
       success: true,
       message: 'Latihan berhasil diselesaikan',
       data: {
-        resultId: result.id.toString(),
+        resultId: result.id,
         score,
         totalCorrect,
         totalWrong,

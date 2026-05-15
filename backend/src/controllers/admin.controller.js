@@ -13,7 +13,7 @@ export const getUsers = async (req, res, next) => {
 
     return res.json({
       success: true,
-      data: users.map((u) => ({ ...u, id: u.id.toString() })),
+      data: users,
     });
   } catch (error) {
     next(error);
@@ -55,7 +55,7 @@ export const getStats = async (req, res, next) => {
         totalQuestions,
         recentUsers,
         recentResults: recentResults.map((r) => ({
-          id: r.id.toString(),
+          id: r.id,
           userName: r.user.name,
           examTitle: r.exam.title,
           score: r.score,
@@ -73,6 +73,31 @@ export const deleteUser = async (req, res, next) => {
   try {
     await prisma.user.delete({ where: { uuid: req.params.uuid } });
     return res.json({ success: true, message: 'User berhasil dihapus' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const OWNER_EMAIL = 'hasyimsriewahyudi@gmail.com';
+
+// Admin: Update user role (Owner Only)
+export const updateUserRole = async (req, res, next) => {
+  try {
+    if (req.user.email !== OWNER_EMAIL) {
+      return res.status(403).json({ success: false, message: 'Hanya Owner yang dapat mengubah role user' });
+    }
+
+    const { role } = req.body;
+    if (!['USER', 'ADMIN'].includes(role)) {
+      return res.status(400).json({ success: false, message: 'Role tidak valid' });
+    }
+
+    await prisma.user.update({
+      where: { uuid: req.params.uuid },
+      data: { role },
+    });
+
+    return res.json({ success: true, message: `Role user berhasil diubah menjadi ${role}` });
   } catch (error) {
     next(error);
   }

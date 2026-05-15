@@ -6,12 +6,14 @@ import {
   HiOutlineBookOpen, 
   HiOutlineLogout,
   HiOutlineDocumentText,
+  HiOutlineUsers,
 } from 'react-icons/hi';
 
 // Modular Components
 import AdminStats from '../components/admin/AdminStats';
 import AdminExams from '../components/admin/AdminExams';
 import AdminQuestions from '../components/admin/AdminQuestions';
+import AdminUsers from '../components/admin/AdminUsers';
 
 export default function AdminPage() {
   const { logout } = useAuthStore();
@@ -30,6 +32,8 @@ export default function AdminPage() {
     { type: 'divider' },
     { to: "/admin/exams/practice", label: "Paket Latihan", icon: HiOutlineBookOpen },
     { to: "/admin/questions/practice", label: "Soal Latihan", icon: HiOutlineDocumentText },
+    { type: 'divider' },
+    { to: "/admin/users", label: "Manajemen User", icon: HiOutlineUsers },
   ];
 
   return (
@@ -68,6 +72,7 @@ export default function AdminPage() {
           <Route path="exams/practice" element={<AdminExams type="PRACTICE" />} />
           <Route path="questions/simulation" element={<AdminQuestions type="SIMULATION" />} />
           <Route path="questions/practice" element={<AdminQuestions type="PRACTICE" />} />
+          <Route path="users" element={<AdminUsers />} />
         </Routes>
       </main>
     </div>

@@ -18,21 +18,7 @@ export const getBookmarks = async (req, res, next) => {
 
     return res.json({
       success: true,
-      data: bookmarks.map((b) => ({
-        id: b.id.toString(),
-        questionId: b.questionId.toString(),
-        question: {
-          ...b.question,
-          id: b.question.id.toString(),
-          examId: b.question.examId.toString(),
-          options: b.question.options.map((o) => ({
-            ...o,
-            id: o.id.toString(),
-            questionId: o.questionId.toString(),
-          })),
-        },
-        createdAt: b.createdAt,
-      })),
+      data: bookmarks,
     });
   } catch (error) {
     next(error);
@@ -46,7 +32,7 @@ export const addBookmark = async (req, res, next) => {
     const bookmark = await prisma.bookmark.create({
       data: { userId: req.user.id, questionId: BigInt(questionId) },
     });
-    return res.status(201).json({ success: true, message: 'Soal berhasil di-bookmark', data: { id: bookmark.id.toString() } });
+    return res.status(201).json({ success: true, message: 'Soal berhasil di-bookmark', data: bookmark });
   } catch (error) {
     if (error.code === 'P2002') {
       return res.status(409).json({ success: false, message: 'Soal sudah di-bookmark' });

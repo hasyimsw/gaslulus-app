@@ -19,25 +19,13 @@ export const getPracticeQuestions = async (req, res, next) => {
       return res.status(404).json({ success: false, message: 'Soal tidak ditemukan untuk mata pelajaran ini' });
     }
 
-    // Do not randomize, just limit to 20 questions
-    const ordered = questions
-      .slice(0, 20)
-      .map((q) => ({
-        ...q,
-        id: q.id.toString(),
-        examId: q.examId.toString(),
-        options: q.options.map((o) => ({
-          id: o.id.toString(),
-          questionId: o.questionId.toString(),
-          optionText: o.optionText,
-          isCorrect: o.isCorrect,
-        })),
-      }));
+    // Shuffle questions and limit to 20 questions
+    const shuffled = questions.sort(() => Math.random() - 0.5).slice(0, 20);
 
     return res.json({ 
       success: true, 
-      data: ordered,
-      info: { category, subject, total: ordered.length }
+      data: shuffled,
+      info: { category, subject, total: shuffled.length }
     });
   } catch (error) {
     next(error);
@@ -58,12 +46,7 @@ export const getQuestions = async (req, res, next) => {
 
     return res.json({
       success: true,
-      data: questions.map((q) => ({
-        ...q,
-        id: q.id.toString(),
-        examId: q.examId.toString(),
-        options: q.options.map((o) => ({ ...o, id: o.id.toString(), questionId: o.questionId.toString() })),
-      })),
+      data: questions,
     });
   } catch (error) {
     next(error);
@@ -91,7 +74,7 @@ export const createQuestion = async (req, res, next) => {
     return res.status(201).json({
       success: true,
       message: 'Soal berhasil dibuat',
-      data: { ...question, id: question.id.toString(), examId: question.examId.toString() },
+      data: question,
     });
   } catch (error) {
     next(error);

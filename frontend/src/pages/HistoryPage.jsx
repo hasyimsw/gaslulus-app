@@ -73,7 +73,23 @@ export default function HistoryPage() {
 
       {loading ? (
         <div className="space-y-4">
-          {[1, 2, 3].map((i) => <Card key={i} className="h-24 animate-pulse bg-slate-50 border-none" />)}
+          {[1, 2, 3, 4, 5].map((i) => (
+            <Card key={i} className="p-5 flex flex-col sm:flex-row items-center gap-6 animate-pulse">
+              <div className="w-14 h-14 rounded-2xl bg-slate-100 shrink-0" />
+              <div className="flex-1 min-w-0 space-y-3">
+                <div className="w-16 h-3 bg-slate-100 rounded" />
+                <div className="w-3/4 h-5 bg-slate-100 rounded" />
+                <div className="flex gap-4">
+                  <div className="w-20 h-3 bg-slate-100 rounded" />
+                  <div className="w-20 h-3 bg-slate-100 rounded" />
+                </div>
+              </div>
+              <div className="flex items-center gap-8">
+                <div className="w-12 h-10 bg-slate-100 rounded-xl" />
+                <div className="w-10 h-10 bg-slate-100 rounded-xl" />
+              </div>
+            </Card>
+          ))}
         </div>
       ) : history.length === 0 ? (
         <Card className="text-center py-24 flex flex-col items-center">
