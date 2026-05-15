@@ -12,6 +12,7 @@ import HistoryPage from './pages/HistoryPage';
 import BookmarkPage from './pages/BookmarkPage';
 import ProfilePage from './pages/ProfilePage';
 import AdminPage from './pages/AdminPage';
+import NotFoundPage from './pages/NotFoundPage';
 import DashboardLayout from './layouts/DashboardLayout';
 
 function ProtectedRoute({ children }) {
@@ -56,16 +57,17 @@ function App() {
           <Route path="/history" element={<HistoryPage />} />
           <Route path="/bookmark" element={<BookmarkPage />} />
           <Route path="/profile" element={<ProfilePage />} />
+          
+          {/* Admin inside Dashboard Layout */}
+          <Route path="/admin/*" element={<AdminRoute><AdminPage /></AdminRoute>} />
         </Route>
 
         {/* Exam (full screen) */}
         <Route path="/exam/:id" element={<ProtectedRoute><ExamPage /></ProtectedRoute>} />
+        <Route path="/practice/:category/:subject" element={<ProtectedRoute><ExamPage /></ProtectedRoute>} />
         <Route path="/result/:id" element={<ProtectedRoute><ResultPage /></ProtectedRoute>} />
 
-        {/* Admin */}
-        <Route path="/admin/*" element={<AdminRoute><AdminPage /></AdminRoute>} />
-
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </BrowserRouter>
   );

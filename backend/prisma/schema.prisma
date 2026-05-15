@@ -7,13 +7,16 @@ datasource db {
 }
 
 model User {
-  id         BigInt     @id @default(autoincrement())
-  uuid       String     @unique @default(uuid())
-  role       Role       @default(USER)
+  id         BigInt       @id @default(autoincrement())
+  uuid       String       @unique @default(uuid())
+  role       Role         @default(USER)
   name       String
-  email      String     @unique
-  password   String
-  createdAt  DateTime   @default(now()) @map("created_at")
+  email      String       @unique
+  password   String?
+  provider   AuthProvider @default(LOCAL)
+  googleId   String?      @unique @map("google_id")
+  avatar     String?
+  createdAt  DateTime     @default(now()) @map("created_at")
   results    Result[]
   bookmarks  Bookmark[]
 
@@ -29,6 +32,7 @@ model Exam {
   totalQuestions Int     @map("total_questions")
   duration    Int
   passingScore Int       @default(60) @map("passing_score")
+  type        ExamType   @default(SIMULATION)
   isPublished Boolean    @default(false) @map("is_published")
   createdAt   DateTime   @default(now()) @map("created_at")
   questions   Question[]
@@ -43,6 +47,7 @@ model Question {
   question    String     @db.Text
   explanation String?    @db.Text
   difficulty  Difficulty @default(MEDIUM)
+  subject     String?
   createdAt   DateTime   @default(now()) @map("created_at")
   exam        Exam       @relation(fields: [examId], references: [id], onDelete: Cascade)
   options     Option[]
@@ -99,6 +104,11 @@ model Bookmark {
   @@map("bookmarks")
 }
 
+enum ExamType {
+  SIMULATION
+  PRACTICE
+}
+
 enum Role {
   USER
   ADMIN
@@ -115,4 +125,9 @@ enum Difficulty {
   EASY
   MEDIUM
   HARD
+}
+
+enum AuthProvider {
+  LOCAL
+  GOOGLE
 }

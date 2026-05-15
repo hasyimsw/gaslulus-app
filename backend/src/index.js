@@ -13,7 +13,7 @@ import bookmarkRoutes from './routes/bookmark.routes.js';
 import adminRoutes from './routes/admin.routes.js';
 import { errorHandler } from './middlewares/error.middleware.js';
 
-// BigInt Serialization Patch for Prisma v7
+// BigInt Serialization Patch (Required for JSON.stringify to handle BigInt)
 if (!BigInt.prototype.toJSON) {
   BigInt.prototype.toJSON = function() {
     return this.toString();
@@ -21,28 +21,34 @@ if (!BigInt.prototype.toJSON) {
 }
 
 const app = express();
-const PORT = process.env.PORT || 5000;
 
-// Middleware to ensure all BigInts in res.json are strings
-app.use((req, res, next) => {
-  const originalJson = res.json;
-  res.json = function(data) {
-    const serializedData = JSON.parse(JSON.stringify(data, (key, value) =>
-      typeof value === 'bigint' ? value.toString() : value
-    ));
-    return originalJson.call(this, serializedData);
-  };
-  next();
+// Validate Environment Variables
+const REQUIRED_ENV = ['DATABASE_URL', 'JWT_SECRET'];
+REQUIRED_ENV.forEach(env => {
+  if (!process.env[env]) {
+    console.error(`❌ FATAL: Missing required environment variable: ${env}`);
+    process.exit(1);
+  }
 });
 
-// Security Middlewares
-app.use(helmet());
+const PORT = process.env.PORT || 5000;
+
+// 1. Security Middlewares (Must be first)
+app.use(helmet({
+  crossOriginOpenerPolicy: { policy: "unsafe-none" },
+}));
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:3000'],
+  origin: process.env.NODE_ENV === 'production' 
+    ? ['https://gaslulus.com'] // Update with real domain in prod
+    : ['http://localhost:5173', 'http://localhost:3000'],
   credentials: true,
 }));
 
-// Rate limiting
+// 2. Parser Middlewares
+app.use(express.json({ limit: '1mb' }));
+app.use(express.urlencoded({ extended: true }));
+
+// 3. Rate Limiting
 const generalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 200,
@@ -51,15 +57,14 @@ const generalLimiter = rateLimit({
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 10,
-  message: { success: false, message: 'Terlalu banyak percobaan login. Coba lagi dalam 15 menit.' },
+  max: 100, // Ditingkatkan agar tidak mengganggu testing
+  message: { success: false, message: 'Terlalu banyak percobaan akses. Coba lagi dalam 15 menit.' },
 });
 
 app.use(generalLimiter);
-app.use(express.json({ limit: '1mb' }));
-app.use(express.urlencoded({ extended: true }));
 
 // Routes
+// Gunakan authLimiter hanya jika diperlukan, atau berikan batas yang lebih tinggi
 app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/exams', examRoutes);

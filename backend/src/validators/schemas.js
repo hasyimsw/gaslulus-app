@@ -1,50 +1,60 @@
 import { z } from 'zod';
 
 export const registerSchema = z.object({
-  name: z.string().min(2, 'Nama minimal 2 karakter').max(100),
-  email: z.string().email('Format email tidak valid (contoh: nama@email.com)'),
+  name: z.string()
+    .trim()
+    .min(2, 'Nama minimal 2 karakter')
+    .max(100)
+    .regex(/^[^<>]*$/, 'Nama tidak boleh mengandung karakter HTML (< atau >)'),
+  email: z.string().trim().toLowerCase().email('Format email tidak valid (contoh: nama@email.com)'),
   password: z.string()
+    .trim()
     .min(8, 'Password minimal 8 karakter')
-    .regex(/^(?=.*[a-z])/, 'Password harus mengandung huruf kecil')
-    .regex(/^(?=.*[A-Z])/, 'Password harus mengandung huruf kapital')
-    .regex(/^(?=.*\d)/, 'Password harus mengandung angka')
-    .regex(/^(?=.*[@$!%*?&_])/, 'Password harus mengandung simbol spesifik (@$!%*?&_)'),
-  confirmPassword: z.string(),
+    .regex(/[A-Z]/, 'Password harus mengandung minimal 1 huruf besar')
+    .regex(/[0-9]/, 'Password harus mengandung minimal 1 angka')
+    .regex(/[^A-Za-z0-9]/, 'Password harus mengandung minimal 1 simbol (contoh: @, #, $, dll)'),
+  confirmPassword: z.string().trim(),
 }).refine((data) => data.password === data.confirmPassword, {
   message: 'Password tidak cocok',
   path: ['confirmPassword'],
 });
 
 export const loginSchema = z.object({
-  email: z.string().email('Format email tidak valid'),
-  password: z.string().min(1, 'Password wajib diisi'),
+  email: z.string().trim().toLowerCase().email('Format email tidak valid'),
+  password: z.string().trim().min(1, 'Password wajib diisi'),
 });
 
-
 export const examSchema = z.object({
-  title: z.string().min(3, 'Judul minimal 3 karakter'),
-  description: z.string().optional(),
+  title: z.string().trim().min(3, 'Judul minimal 3 karakter'),
+  description: z.string().trim().optional(),
   category: z.enum(['SD', 'SMP', 'SMA', 'CPNS']),
-  subCategory: z.string().optional(),
+  subCategory: z.string().trim().optional(),
   totalQuestions: z.number().int().positive(),
   duration: z.number().int().positive(),
   passingScore: z.number().int().min(0).max(100).optional(),
+  type: z.enum(['SIMULATION', 'PRACTICE']).optional(),
   isPublished: z.boolean().optional(),
 });
 
 export const questionSchema = z.object({
   examId: z.number().int().positive(),
-  question: z.string().min(5, 'Pertanyaan minimal 5 karakter'),
-  explanation: z.string().optional(),
+  question: z.string().trim().min(5, 'Pertanyaan minimal 5 karakter'),
+  explanation: z.string().trim().optional(),
   difficulty: z.enum(['EASY', 'MEDIUM', 'HARD']).optional(),
+  subject: z.string().trim().optional(),
   options: z.array(z.object({
-    optionText: z.string().min(1, 'Pilihan jawaban tidak boleh kosong'),
+    optionText: z.string().trim().min(1, 'Pilihan jawaban tidak boleh kosong'),
     isCorrect: z.boolean(),
   })).min(2, 'Minimal 2 pilihan jawaban'),
 });
 
 export const updateProfileSchema = z.object({
-  name: z.string().min(2).max(100).optional(),
+  name: z.string()
+    .trim()
+    .min(2, 'Nama minimal 2 karakter')
+    .max(100)
+    .regex(/^[^<>]*$/, 'Nama tidak boleh mengandung karakter HTML (< atau >)')
+    .optional(),
 });
 
 export const updatePasswordSchema = z.object({

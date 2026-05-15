@@ -5,8 +5,8 @@ import { examSchema } from '../validators/schemas.js';
 export const getExams = async (req, res, next) => {
   try {
     const { category } = req.query;
-    const where = { isPublished: true };
-    if (category) where.category = category;
+    const where = { isPublished: true, type: 'SIMULATION' };
+    if (category && category !== 'Semua') where.category = category;
 
     const exams = await prisma.exam.findMany({
       where,
@@ -20,6 +20,42 @@ export const getExams = async (req, res, next) => {
     });
 
     return res.json({ success: true, data: exams.map(e => ({ ...e, id: e.id.toString() })) });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getSubjectsByCategory = async (req, res, next) => {
+  try {
+    const { category } = req.params;
+    const where = { isPublished: true, type: 'PRACTICE' };
+    if (category && category !== 'Semua') {
+      where.category = category;
+    }
+
+    const exams = await prisma.exam.findMany({
+      where,
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        category: true,
+        totalQuestions: true,
+        duration: true,
+        _count: { select: { questions: true } },
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    return res.json({ 
+      success: true, 
+      data: exams.map(e => ({ 
+        ...e, 
+        id: e.id.toString(),
+        subject: e.title, // Use title as subject for the frontend
+        totalQuestions: e._count.questions
+      }))
+    });
   } catch (error) {
     next(error);
   }
@@ -52,20 +88,18 @@ export const getExamQuestions = async (req, res, next) => {
 
     const questions = await prisma.question.findMany({
       where: { examId: BigInt(req.params.id) },
-      include: { options: true },
+      include: { options: { orderBy: { id: 'asc' } } },
+      orderBy: { id: 'asc' }
     });
 
-    // Randomize questions and options
-    const shuffled = questions
-      .sort(() => Math.random() - 0.5)
+    // Do not randomize, just limit to totalQuestions
+    const ordered = questions
       .slice(0, exam.totalQuestions)
       .map((q) => ({
         ...q,
         id: q.id.toString(),
         examId: q.examId.toString(),
-        options: q.options
-          .sort(() => Math.random() - 0.5)
-          .map((o) => ({
+        options: q.options.map((o) => ({
             id: o.id.toString(),
             questionId: o.questionId.toString(),
             optionText: o.optionText,
@@ -73,7 +107,7 @@ export const getExamQuestions = async (req, res, next) => {
           })),
       }));
 
-    return res.json({ success: true, data: shuffled, exam: { ...exam, id: exam.id.toString() } });
+    return res.json({ success: true, data: ordered, exam: { ...exam, id: exam.id.toString() } });
   } catch (error) {
     next(error);
   }
@@ -195,5 +229,110 @@ export const deleteExam = async (req, res, next) => {
     return res.json({ success: true, message: 'Ujian berhasil dihapus' });
   } catch (error) {
     next(error);
+  }
+};
+
+// Submit Practice Session
+export const submitPractice = async (req, res, next) => {
+  try {
+    const { answers, durationUsed, category, subject } = req.body;
+
+    if (!category || !answers || !Array.isArray(answers)) {
+      return res.status(400).json({ success: false, message: 'Data latihan tidak lengkap' });
+    }
+
+    // Find a reference simulation exam for this category
+    const exam = await prisma.exam.findFirst({
+      where: { category, type: 'SIMULATION', isPublished: true }
+    });
+
+    if (!exam) {
+      return res.status(404).json({ success: false, message: 'Kategori ujian tidak tersedia untuk simulasi' });
+    }
+
+    // Process answers and fetch questions
+    const validAnswerIds = answers
+      .filter(a => a.questionId)
+      .map(a => {
+        try { return BigInt(a.questionId); } catch { return null; }
+      })
+      .filter(id => id !== null);
+
+    const questions = await prisma.question.findMany({
+      where: { id: { in: validAnswerIds } },
+      include: { options: { where: { isCorrect: true } } },
+    });
+
+    let totalCorrect = 0;
+    let totalWrong = 0;
+    let totalSkipped = 0;
+
+    answers.forEach((ans) => {
+      if (!ans.questionId) return;
+      
+      const question = questions.find((q) => q.id.toString() === ans.questionId.toString());
+      if (!question) {
+        totalSkipped++;
+        return;
+      }
+
+      if (!ans.selectedOptionId) {
+        totalSkipped++;
+        return;
+      }
+
+      const correctOption = question.options[0];
+      if (correctOption && correctOption.id.toString() === ans.selectedOptionId.toString()) {
+        totalCorrect++;
+      } else {
+        totalWrong++;
+      }
+    });
+
+    const total = totalCorrect + totalWrong + totalSkipped;
+    const score = total > 0 ? Math.round((totalCorrect / total) * 100) : 0;
+
+    // Database operations in a transaction or sequential
+    const result = await prisma.$transaction(async (tx) => {
+      const resData = await tx.result.create({
+        data: {
+          userId: req.user.id,
+          examId: exam.id,
+          score: parseFloat(score),
+          totalCorrect,
+          totalWrong,
+          totalSkipped,
+          durationUsed: parseInt(durationUsed) || 0,
+        },
+      });
+
+      await tx.history.create({
+        data: { resultId: resData.id }
+      });
+
+      return resData;
+    });
+
+    return res.json({
+      success: true,
+      message: 'Latihan berhasil diselesaikan',
+      data: {
+        resultId: result.id.toString(),
+        score,
+        totalCorrect,
+        totalWrong,
+        totalSkipped,
+        passed: score >= 60,
+        passingScore: 60,
+        durationUsed: parseInt(durationUsed) || 0,
+      },
+    });
+  } catch (error) {
+    console.error('CRITICAL ERROR in submitPractice:', error);
+    return res.status(500).json({ 
+      success: false, 
+      message: 'Terjadi kesalahan internal pada server',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 };

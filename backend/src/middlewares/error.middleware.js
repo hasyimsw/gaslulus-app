@@ -2,10 +2,12 @@ export const errorHandler = (err, req, res, next) => {
   console.error('Error:', err);
 
   if (err.name === 'ZodError') {
+    const issues = err.issues || err.errors || [];
+    const firstMessage = issues[0]?.message || 'Validasi gagal';
     return res.status(400).json({
       success: false,
-      message: 'Validasi gagal',
-      errors: err.errors.map((e) => ({ field: e.path.join('.'), message: e.message })),
+      message: firstMessage,
+      errors: issues.map((e) => ({ field: e.path?.join('.'), message: e.message })),
     });
   }
 

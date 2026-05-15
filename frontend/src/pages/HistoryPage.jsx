@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import api from "../lib/api";
+import Card from "../components/ui/Card";
+import Button from "../components/ui/Button";
+import Badge from "../components/ui/Badge";
 import {
   HiOutlineClock,
   HiOutlineBadgeCheck,
-  HiOutlineXCircle,
   HiOutlineChevronRight,
   HiOutlineTrash,
 } from "react-icons/hi";
@@ -14,35 +16,31 @@ import Swal from "sweetalert2";
 export default function HistoryPage() {
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
-  useEffect(() => {
-    fetchHistory();
-  }, []);
+  useEffect(() => { fetchHistory(); }, []);
 
   const fetchHistory = () => {
     setLoading(true);
-    api
-      .get("/results")
-      .then((r) => setHistory(r.data.data))
-      .catch(() => {})
-      .finally(() => setLoading(false));
+    api.get("/results").then((r) => setHistory(r.data.data)).catch(() => {}).finally(() => setLoading(false));
   };
 
   const handleClear = async () => {
     const result = await Swal.fire({
       title: "Hapus Semua Riwayat?",
-      text: "Seluruh data riwayat tryout kamu akan dihapus permanen.",
+      text: "Data riwayat akan dihapus permanen.",
       icon: "warning",
       showCancelButton: true,
       confirmButtonColor: "#ef4444",
-      confirmButtonText: "Ya, Hapus Semua",
-      cancelButtonText: "Batal",
+      confirmButtonText: "Ya, Hapus!",
+      cancelButtonText: "Batal"
     });
 
     if (result.isConfirmed) {
       try {
         await api.delete("/results/clear");
-        Swal.fire("Berhasil!", "Seluruh riwayat telah dihapus.", "success");
+        Swal.fire("Berhasil!", "Riwayat telah dihapus.", "success");
         setHistory([]);
       } catch {
         Swal.fire("Error", "Gagal menghapus riwayat", "error");
@@ -56,114 +54,80 @@ export default function HistoryPage() {
     return `${m}m ${s}s`;
   };
 
+  const totalPages = Math.ceil(history.length / itemsPerPage);
+  const paginatedHistory = history.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
   return (
-    <div className="animate-fade space-y-8">
+    <div className="space-y-8">
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-extrabold text-slate-900 mb-1">
-            Riwayat <span className="text-[#F59E0B]">Tryout</span>
-          </h1>
-          <p className="text-slate-500 font-medium">
-            Pantau perkembangan skor kamu dari waktu ke waktu.
-          </p>
+          <h1 className="text-3xl font-extrabold text-slate-900 mb-1">Riwayat <span className="text-amber-500 font-black">Tryout</span></h1>
+          <p className="text-slate-500 font-medium">Pantau perkembangan skor kamu dari waktu ke waktu.</p>
         </div>
         {history.length > 0 && (
-          <button
-            onClick={handleClear}
-            className="btn bg-red-50 text-red-500 hover:text-red-600 border border-red-100 hover:bg-red-100 font-bold px-5 py-2 text-sm"
-          >
-            <HiOutlineTrash size={18} />
+          <Button variant="danger" onClick={handleClear} icon={HiOutlineTrash} className="text-xs">
             Hapus Riwayat
-          </button>
+          </Button>
         )}
       </div>
 
       {loading ? (
         <div className="space-y-4">
-          {[1, 2, 3].map((i) => (
-            <div
-              key={i}
-              className="card h-24 bg-slate-50 animate-pulse border-none"
-            />
-          ))}
+          {[1, 2, 3].map((i) => <Card key={i} className="h-24 animate-pulse bg-slate-50 border-none" />)}
         </div>
       ) : history.length === 0 ? (
-        <div className="card text-center py-24 flex flex-col items-center">
-          <div className="text-6xl mb-6 grayscale opacity-40">📋</div>
-          <h3 className="text-xl font-bold text-slate-900 mb-2">
-            Belum ada riwayat
-          </h3>
-          <p className="text-slate-500 font-medium mb-8">
-            Kamu belum mengerjakan tryout apapun.
-          </p>
-          <Link
-            to="/tryout"
-            className="btn btn-primary px-6 py-3 shadow-md shadow-blue-100 font-medium"
-          >
-            Mulai Tryout Pertama
-            <HiOutlineChevronRight size={16} />
-          </Link>
-        </div>
+        <Card className="text-center py-24 flex flex-col items-center">
+          <div className="text-5xl mb-4 grayscale opacity-20">📋</div>
+          <h3 className="text-xl font-bold text-slate-900 mb-2">Belum ada riwayat</h3>
+          <p className="text-slate-500 font-medium mb-8">Kamu belum mengerjakan tryout apapun.</p>
+          <Button as={Link} to="/tryout" icon={HiOutlineChevronRight}>Mulai Tryout Pertama</Button>
+        </Card>
       ) : (
         <div className="flex flex-col gap-4">
-          {history.map((item, i) => (
-            <motion.div
-              key={item.id}
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: i * 0.05 }}
-              className="card p-5 flex flex-col sm:flex-row items-center gap-6 group hover:border-blue-200"
-            >
-              {/* Category Badge Icon */}
-              <div className="w-14 h-14 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 shrink-0 group-hover:scale-110 transition-transform">
-                <HiOutlineBadgeCheck size={32} />
-              </div>
+          {paginatedHistory.map((item, i) => (
+            <motion.div key={item.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }}>
+              <Card className="p-5 flex flex-col sm:flex-row items-center gap-6 group" hoverable>
+                <div className="w-14 h-14 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600 shrink-0 group-hover:scale-110 transition-transform">
+                  <HiOutlineBadgeCheck size={32} />
+                </div>
 
-              {/* Info */}
-              <div className="flex-1 min-w-0 text-center sm:text-left">
-                <div className="text-[10px] font-black text-blue-600 mb-1 uppercase tracking-[0.15em] bg-blue-50 inline-block badge">
-                  {item.category}
-                </div>
-                <div className="font-extrabold text-lg text-slate-900 mb-2 truncate">
-                  {item.examTitle}
-                </div>
-                <div className="flex flex-wrap justify-center sm:justify-start gap-4 text-xs font-medium text-slate-400">
-                  <span className="flex items-center gap-1.5">
-                    <HiOutlineClock className="text-slate-400" />{" "}
-                    {formatDuration(item.durationUsed)}
-                  </span>
-                  <span className="flex items-center gap-1.5 text-emerald-500 bg-emerald-50/50 px-2 py-0.5 rounded-md">
-                    {item.totalCorrect} Benar
-                  </span>
-                  <span className="flex items-center gap-1.5 text-red-500 bg-red-50/50 px-2 py-0.5 rounded-md">
-                    {item.totalWrong} Salah
-                  </span>
-                </div>
-              </div>
-
-              {/* Score & Action */}
-              <div className="flex items-center gap-8 w-full sm:w-auto justify-between sm:justify-end pt-4 sm:pt-0 border-t sm:border-t-0 border-slate-50">
-                <div className="text-center">
-                  <div
-                    className={`text-3xl font-medium leading-none ${item.passed ? "text-emerald-500" : "text-red-500"}`}
-                  >
-                    {Math.round(item.score)}
-                  </div>
-                  <div
-                    className={`text-[10px] font-medium uppercase tracking-widest mt-1.5 ${item.passed ? "text-emerald-500" : "text-red-500"}`}
-                  >
-                    {item.passed ? "Lulus" : "Gagal"}
+                <div className="flex-1 min-w-0 text-center sm:text-left">
+                  <Badge variant="primary" className="mb-2 uppercase tracking-widest text-[9px]">{item.category}</Badge>
+                  <div className="font-bold text-lg text-slate-900 mb-2 truncate">{item.examTitle}</div>
+                  <div className="flex flex-wrap justify-center sm:justify-start gap-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                    <span className="flex items-center gap-1.5"><HiOutlineClock /> {formatDuration(item.durationUsed)}</span>
+                    <span className="text-emerald-500 bg-emerald-50 px-2 py-1 rounded-lg">{item.totalCorrect} Benar</span>
+                    <span className="text-red-500 bg-red-50 px-2 py-1 rounded-lg">{item.totalWrong} Salah</span>
                   </div>
                 </div>
-                <Link
-                  to={`/result/${item.id}`}
-                  className="p-2 rounded-lg bg-blue-50 text-blue-500 hover:bg-blue-100 hover:text-blue-600 transition-colors"
-                >
-                  <HiOutlineChevronRight size={20} />
-                </Link>
-              </div>
+
+                <div className="flex items-center gap-8 w-full sm:w-auto justify-between sm:justify-end pt-4 sm:pt-0 border-t sm:border-t-0 border-slate-50">
+                  <div className="text-center">
+                    <div className={`text-3xl font-black leading-none ${item.passed ? "text-emerald-500" : "text-red-500"}`}>{Math.round(item.score)}</div>
+                    <Badge variant={item.passed ? "success" : "danger"} className="mt-2 text-[8px]">{item.passed ? "LULUS" : "GAGAL"}</Badge>
+                  </div>
+                  <Button as={Link} to={`/result/${item.id}`} variant="outline" className="p-3" icon={HiOutlineChevronRight} />
+                </div>
+              </Card>
             </motion.div>
           ))}
+
+          {totalPages > 1 && (
+            <div className="flex justify-center items-center gap-2 mt-8">
+              {[...Array(totalPages)].map((_, i) => {
+                const page = i + 1;
+                return (
+                  <button
+                    key={page}
+                    onClick={() => { setCurrentPage(page); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+                    className={`w-10 h-10 rounded-xl text-xs font-bold transition-all ${currentPage === page ? "bg-blue-600 text-white shadow-lg shadow-blue-100" : "bg-white text-slate-400 border border-slate-100 hover:border-blue-200"}`}
+                  >
+                    {page}
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
     </div>

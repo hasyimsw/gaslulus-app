@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import {
-  getExams, getExamById, getExamQuestions, submitExam,
+  getExams, getExamById, getExamQuestions, submitExam, getSubjectsByCategory, submitPractice,
   adminGetExams, createExam, updateExam, deleteExam,
 } from '../controllers/exam.controller.js';
 import { authenticate, authorizeAdmin } from '../middlewares/auth.middleware.js';
@@ -9,10 +9,12 @@ const router = Router();
 
 // Public routes
 router.get('/', getExams);
+router.get('/subjects/:category', getSubjectsByCategory);
 router.get('/:id', getExamById);
 
 // Protected routes (require login)
 router.get('/:id/questions', authenticate, getExamQuestions);
+router.post('/practice/submit', authenticate, submitPractice);
 router.post('/:id/submit', authenticate, submitExam);
 
 // Admin routes
