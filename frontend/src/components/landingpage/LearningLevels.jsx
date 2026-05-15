@@ -59,7 +59,7 @@ export default function LearningLevels() {
         >
           {/* Left Column: SD */}
           <motion.div variants={itemVariants} className="h-full">
-            <Card className="p-10 h-full flex flex-col bg-slate-50 border-transparent shadow-md shadow-primary/20 hover:bg-primary hover:shadow-xl transition-all duration-300 rounded-xl group overflow-hidden">
+            <Card className="p-10 h-full flex flex-col bg-slate-50 border-transparent shadow-xl shadow-primary/10 hover:bg-primary hover:shadow-xl transition-all duration-300 rounded-3xl group overflow-hidden">
               <div className="w-16 h-16 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-10 group-hover:bg-white/20 group-hover:text-white transition-all duration-300 shadow-sm">
                 <HiOutlineAcademicCap size={32} />
               </div>
@@ -78,7 +78,7 @@ export default function LearningLevels() {
           {/* Middle Column: SMP & SMA */}
           <div className="flex flex-col gap-6 lg:gap-8">
             <motion.div variants={itemVariants} className="flex-1">
-              <Card className="p-8 h-full bg-slate-50 border-transparent shadow-md shadow-primary/20 hover:bg-primary hover:shadow-xl transition-all duration-300 rounded-xl group flex items-center gap-6 overflow-hidden">
+              <Card className="p-8 h-full bg-slate-50 border-transparent shadow-xl shadow-primary/10 hover:bg-primary hover:shadow-xl transition-all duration-300 rounded-3xl group flex items-center gap-6 overflow-hidden">
                 <div className="w-14 h-14 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0 group-hover:bg-white/20 group-hover:text-white transition-all duration-300 shadow-sm">
                   <HiOutlineBookOpen size={28} />
                 </div>
@@ -86,11 +86,11 @@ export default function LearningLevels() {
                   <h3 className="text-xl font-bold text-primary mb-1 group-hover:text-white transition-colors">SMP / MTs</h3>
                   <p className="text-sm text-slate-600 font-medium group-hover:text-white/70 transition-colors">Strategi masuk SMA favorit.</p>
                 </div>
-              </Card>
+              </Card> 
             </motion.div>
 
             <motion.div variants={itemVariants} className="flex-1">
-              <Card className="p-8 h-full bg-slate-50 border-transparent shadow-md shadow-primary/20 hover:bg-primary hover:shadow-xl transition-all duration-300 rounded-xl group flex items-center gap-6 overflow-hidden">
+              <Card className="p-8 h-full bg-slate-50 border-transparent shadow-xl shadow-primary/10 hover:bg-primary hover:shadow-xl transition-all duration-300 rounded-3xl group flex items-center gap-6 overflow-hidden">
                 <div className="w-14 h-14 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0 group-hover:bg-white/20 group-hover:text-white transition-all duration-300 shadow-sm">
                   <HiOutlineLibrary size={28} />
                 </div>
@@ -104,7 +104,7 @@ export default function LearningLevels() {
 
           {/* Right Column: CPNS */}
           <motion.div variants={itemVariants} className="h-full">
-            <Card className="p-10 h-full flex flex-col bg-slate-50 border-transparent shadow-md shadow-primary/20 hover:bg-primary hover:shadow-xl transition-all duration-300 rounded-xl group relative overflow-hidden">
+            <Card className="p-10 h-full flex flex-col bg-slate-50 border-transparent shadow-xl shadow-primary/10 hover:bg-primary hover:shadow-xl transition-all duration-300 rounded-3xl group relative overflow-hidden">
               <div className="mb-6">
                 <Badge variant="success">MOST POPULAR</Badge>
               </div>
