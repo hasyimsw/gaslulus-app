@@ -23,10 +23,16 @@ export default function ExamTimer({ timeLeft, setTimeLeft, onTimeUp }) {
     return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
   };
 
+  const isWarning = timeLeft <= 300 && timeLeft > 0; // 5 Menit
+
   return (
-    <div className="bg-primary/10 text-primary px-6 py-2.5 rounded-xl flex items-center gap-3 border border-primary/10">
-      <HiOutlineClock size={20} />
-      <span className="font-bold text-sm tracking-tight tabular-nums">
+    <div className={`px-6 py-2.5 rounded-xl flex items-center gap-3 border transition-all duration-300 ${
+      isWarning 
+        ? 'bg-red-50 text-red-600 border-red-200 shadow-md shadow-red-500/20 animate-pulse'
+        : 'bg-[#011F7B]/5 text-[#011F7B] border-[#011F7B]/10'
+    }`}>
+      <HiOutlineClock size={20} className={isWarning ? 'animate-bounce' : ''} />
+      <span className="font-extrabold text-sm tracking-widest tabular-nums">
         {formatTime(timeLeft)}
       </span>
     </div>

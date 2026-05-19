@@ -36,7 +36,7 @@ export default function ExamQuestion({
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.2 }}
           >
-            <p className="text-lg font-semibold text-slate-700 leading-relaxed">
+            <p className="text-lg font-semibold text-slate-700 leading-relaxed whitespace-pre-wrap">
               {question.question}
             </p>
           </motion.div>

@@ -31,7 +31,16 @@ export const getResultDetail = async (req, res, next) => {
     
     const result = await prisma.result.findFirst({
       where: { id, userId },
-      include: { exam: true },
+      include: { 
+        exam: true,
+        answers: {
+          include: {
+            question: {
+              include: { options: true }
+            }
+          }
+        }
+      },
     });
 
     if (!result) return res.status(404).json({ success: false, message: 'Hasil tidak ditemukan' });

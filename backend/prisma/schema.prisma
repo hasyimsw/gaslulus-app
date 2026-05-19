@@ -52,6 +52,7 @@ model Question {
   exam        Exam       @relation(fields: [examId], references: [id], onDelete: Cascade)
   options     Option[]
   bookmarks   Bookmark[]
+  resultAnswers ResultAnswer[]
 
   @@map("questions")
 }
@@ -62,6 +63,7 @@ model Option {
   optionText String   @db.Text @map("option_text")
   isCorrect  Boolean  @default(false) @map("is_correct")
   question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  resultAnswers ResultAnswer[]
 
   @@map("options")
 }
@@ -79,6 +81,7 @@ model Result {
   user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   exam         Exam      @relation(fields: [examId], references: [id], onDelete: Cascade)
   history      History?
+  answers      ResultAnswer[]
 
   @@map("results")
 }
@@ -90,6 +93,29 @@ model History {
   result    Result   @relation(fields: [resultId], references: [id], onDelete: Cascade)
 
   @@map("histories")
+}
+
+model ResultAnswer {
+  id               BigInt   @id @default(autoincrement())
+  resultId         BigInt   @map("result_id")
+  questionId       BigInt   @map("question_id")
+  selectedOptionId BigInt?  @map("selected_option_id")
+  isCorrect        Boolean  @default(false) @map("is_correct")
+  result           Result   @relation(fields: [resultId], references: [id], onDelete: Cascade)
+  question         Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  selectedOption   Option?  @relation(fields: [selectedOptionId], references: [id], onDelete: SetNull)
+
+  @@map("result_answers")
+}
+
+model PasswordResetToken {
+  id        BigInt   @id @default(autoincrement())
+  email     String   @unique
+  token     String   @unique
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("password_reset_tokens")
 }
 
 model Bookmark {

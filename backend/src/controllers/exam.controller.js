@@ -1,5 +1,6 @@
 import prisma from '../lib/prisma.js';
 import { examSchema } from '../validators/schemas.js';
+import { activeSessions } from '../lib/session.js';
 
 // Public: Get all published exams
 export const getExams = async (req, res, next) => {
@@ -92,7 +93,21 @@ export const getExamQuestions = async (req, res, next) => {
     });
 
     // Shuffle questions and limit to totalQuestions
-    const shuffled = questions.sort(() => Math.random() - 0.5).slice(0, exam.totalQuestions);
+    const shuffleArray = (array) => {
+      const newArray = [...array];
+      for (let i = newArray.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+      }
+      return newArray;
+    };
+    const shuffled = shuffleArray(questions).slice(0, exam.totalQuestions);
+
+    // Record session start time to prevent time spoofing
+    if (req.user) {
+      const sessionKey = `${req.user.id}_sim_${exam.id}`;
+      activeSessions.set(sessionKey, Date.now());
+    }
 
     return res.json({ success: true, data: shuffled, exam });
   } catch (error) {
@@ -141,19 +156,52 @@ export const submitExam = async (req, res, next) => {
     const total = totalCorrect + totalWrong + totalSkipped;
     const score = total > 0 ? Math.round((totalCorrect / total) * 100) : 0;
 
-    const result = await prisma.result.create({
-      data: {
-        userId: req.user.id,
-        examId,
-        score,
-        totalCorrect,
-        totalWrong,
-        totalSkipped,
-        durationUsed: durationUsed || 0,
-      },
-    });
+    // --- TIME SPOOFING PREVENTION ---
+    let finalDurationUsed = parseInt(durationUsed) || 0;
+    if (req.user) {
+      const sessionKey = `${req.user.id}_sim_${exam.id}`;
+      const startTime = activeSessions.get(sessionKey);
+      if (startTime) {
+        const elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
+        finalDurationUsed = Math.min(elapsedSeconds, exam.duration * 60 + 5);
+        activeSessions.delete(sessionKey);
+      }
+    }
 
-    await prisma.history.create({ data: { resultId: result.id } });
+    const result = await prisma.$transaction(async (tx) => {
+      const resData = await tx.result.create({
+        data: {
+          userId: req.user.id,
+          examId,
+          score,
+          totalCorrect,
+          totalWrong,
+          totalSkipped,
+          durationUsed: finalDurationUsed,
+          answers: {
+            create: answers.map((ans) => {
+              const question = questions.find((q) => q.id.toString() === ans.questionId.toString());
+              let isCorrect = false;
+              if (question && ans.selectedOptionId) {
+                const correctOption = question.options[0];
+                if (correctOption && correctOption.id.toString() === ans.selectedOptionId.toString()) {
+                  isCorrect = true;
+                }
+              }
+              return {
+                questionId: BigInt(ans.questionId),
+                selectedOptionId: ans.selectedOptionId ? BigInt(ans.selectedOptionId) : null,
+                isCorrect,
+              };
+            }).filter(a => a.questionId),
+          }
+        },
+      });
+
+      await tx.history.create({ data: { resultId: resData.id } });
+
+      return resData;
+    });
 
     return res.json({
       success: true,
@@ -166,7 +214,7 @@ export const submitExam = async (req, res, next) => {
         totalSkipped,
         passed: score >= exam.passingScore,
         passingScore: exam.passingScore,
-        durationUsed,
+        durationUsed: finalDurationUsed,
       },
     });
   } catch (error) {
@@ -229,20 +277,16 @@ export const submitPractice = async (req, res, next) => {
     }
 
     // Find a reference simulation exam for this category
-    const exam = await prisma.exam.findFirst({
+    let exam = await prisma.exam.findFirst({
       where: { category, type: 'SIMULATION', isPublished: true }
     });
 
     if (!exam) {
-      return res.status(404).json({ success: false, message: 'Kategori ujian tidak tersedia untuk simulasi' });
-    }
-
-    if (!exam) {
       // Fallback: If no simulation exists, find ANY exam of that category
-      const fallbackExam = await prisma.exam.findFirst({
+      exam = await prisma.exam.findFirst({
         where: { category, isPublished: true }
       });
-      if (!fallbackExam) {
+      if (!exam) {
         return res.status(404).json({ success: false, message: 'Kategori ujian tidak tersedia' });
       }
     }
@@ -292,6 +336,18 @@ export const submitPractice = async (req, res, next) => {
     const total = totalCorrect + totalWrong + totalSkipped;
     const score = total > 0 ? Math.round((totalCorrect / total) * 100) : 0;
 
+    // --- TIME SPOOFING PREVENTION ---
+    let finalDurationUsed = parseInt(durationUsed) || 0;
+    if (req.user) {
+      const sessionKey = `${req.user.id}_practice_${category}_${subject}`;
+      const startTime = activeSessions.get(sessionKey);
+      if (startTime) {
+        const elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
+        finalDurationUsed = Math.min(elapsedSeconds, 120 * 60);
+        activeSessions.delete(sessionKey);
+      }
+    }
+
     // Database operations in a transaction or sequential
     const result = await prisma.$transaction(async (tx) => {
       const resData = await tx.result.create({
@@ -302,7 +358,25 @@ export const submitPractice = async (req, res, next) => {
           totalCorrect,
           totalWrong,
           totalSkipped,
-          durationUsed: parseInt(durationUsed) || 0,
+          durationUsed: finalDurationUsed,
+          answers: {
+            create: answers.map((ans) => {
+              if (!ans.questionId) return null;
+              const question = questions.find((q) => q.id.toString() === ans.questionId.toString());
+              let isCorrect = false;
+              if (question && ans.selectedOptionId) {
+                const correctOption = question.options[0];
+                if (correctOption && correctOption.id.toString() === ans.selectedOptionId.toString()) {
+                  isCorrect = true;
+                }
+              }
+              return {
+                questionId: BigInt(ans.questionId),
+                selectedOptionId: ans.selectedOptionId ? BigInt(ans.selectedOptionId) : null,
+                isCorrect,
+              };
+            }).filter(Boolean),
+          }
         },
       });
 
@@ -324,7 +398,7 @@ export const submitPractice = async (req, res, next) => {
         totalSkipped,
         passed: score >= 60,
         passingScore: 60,
-        durationUsed: parseInt(durationUsed) || 0,
+        durationUsed: finalDurationUsed,
       },
     });
   } catch (error) {

@@ -26,6 +26,10 @@ export default function TryoutPage() {
   const [mode, setMode] = useState("SIMULATION");
   const [activeCategory, setActiveCategory] = useState(searchParams.get("category") || "Semua");
   const [search, setSearch] = useState("");
+  
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 9;
 
   useEffect(() => {
     setLoading(true);
@@ -39,6 +43,11 @@ export default function TryoutPage() {
       api.get(`/exams/subjects/${activeCategory}`).then((res) => setSubjects(res.data.data)).finally(() => setLoading(false));
     }
   }, [activeCategory, mode]);
+
+  // Reset page when category, mode, or search term changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeCategory, mode, search]);
 
   const handleStart = (id, type) => {
     Swal.fire({
@@ -56,6 +65,11 @@ export default function TryoutPage() {
   const currentData = mode === "SIMULATION" 
     ? exams.filter(e => e.title.toLowerCase().includes(search.toLowerCase()))
     : subjects.filter(s => s.subject.toLowerCase().includes(search.toLowerCase()));
+
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const paginatedData = currentData.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(currentData.length / itemsPerPage);
 
   return (
     <div className="space-y-12 pb-24">
@@ -106,45 +120,90 @@ export default function TryoutPage() {
           <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Memuat...</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {currentData.map((item, i) => (
-            <motion.div key={i} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
-              <Card className="p-8 h-full flex flex-col group" hoverable>
-                <div className="flex justify-between items-start mb-6">
-                  <Badge variant={item.category === 'CPNS' ? 'danger' : item.category === 'SMA' ? 'warning' : item.category === 'SMP' ? 'primary' : 'success'}>
-                    {item.category}
-                  </Badge>
-                  <HiOutlineBookOpen className="text-slate-200 group-hover:text-[#011F7B]/30 transition-colors" size={24} />
-                </div>
-
-                <div className="flex-1">
-                  <h3 className="text-xl font-bold text-slate-900 mb-3 group-hover:text-[#011F7B] transition-colors">
-                    {mode === "SIMULATION" ? item.title : item.subject}
-                  </h3>
-                  <p className="text-sm text-slate-500 font-medium leading-relaxed line-clamp-2">
-                    {mode === "SIMULATION" ? (item.description || "Simulasi ujian lengkap terstandar.") : `Latihan soal khusus mata pelajaran ${item.subject}.`}
-                  </p>
-                </div>
-
-                <div className="mt-8 flex items-center gap-6 py-4 border-t border-slate-50">
-                  <div className="flex items-center gap-2">
-                    {mode === "SIMULATION" ? <HiOutlineBookOpen className="text-[#011F7B]/40" /> : <HiCheck className="text-emerald-400" />}
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                      {(item._count?.questions !== undefined ? item._count.questions : item.totalQuestions) || 0} Soal
-                    </span>
+        <div className="space-y-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {paginatedData.map((item, i) => (
+              <motion.div key={i} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
+                <Card className="p-8 h-full flex flex-col group" hoverable>
+                  <div className="flex justify-between items-start mb-6">
+                    <Badge variant={item.category === 'CPNS' ? 'danger' : item.category === 'SMA' ? 'warning' : item.category === 'SMP' ? 'primary' : 'success'}>
+                      {item.category}
+                    </Badge>
+                    <HiOutlineBookOpen className="text-slate-200 group-hover:text-[#011F7B]/30 transition-colors" size={24} />
                   </div>
-                  <div className="flex items-center gap-2">
-                    <HiOutlineClock className="text-[#011F7B]/40" />
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{item.duration || 30} Menit</span>
+
+                  <div className="flex-1">
+                    <h3 className="text-xl font-bold text-slate-900 mb-3 group-hover:text-[#011F7B] transition-colors">
+                      {mode === "SIMULATION" ? item.title : item.subject}
+                    </h3>
+                    <p className="text-sm text-slate-500 font-medium leading-relaxed line-clamp-2">
+                      {mode === "SIMULATION" ? (item.description || "Simulasi ujian lengkap terstandar.") : `Latihan soal khusus mata pelajaran ${item.subject}.`}
+                    </p>
                   </div>
+
+                  <div className="mt-8 flex items-center gap-6 py-4 border-t border-slate-50">
+                    <div className="flex items-center gap-2">
+                      {mode === "SIMULATION" ? <HiOutlineBookOpen className="text-[#011F7B]/40" /> : <HiCheck className="text-emerald-400" />}
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                        {(item._count?.questions !== undefined ? item._count.questions : item.totalQuestions) || 0} Soal
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <HiOutlineClock className="text-[#011F7B]/40" />
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{item.duration || 30} Menit</span>
+                    </div>
+                  </div>
+
+                  <Button className="mt-6 w-full" onClick={() => handleStart(item.id, mode === "SIMULATION" ? "Ujian" : "Latihan")} icon={HiOutlineChevronRight}>
+                    {mode === "SIMULATION" ? "Mulai Ujian" : "Mulai Latihan"}
+                  </Button>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
+
+          {totalPages > 1 && (
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-12 border-t border-slate-100">
+              <span className="text-sm text-slate-500 font-medium">
+                Menampilkan <span className="font-bold text-[#011F7B]">{indexOfFirstItem + 1}</span> -{" "}
+                <span className="font-bold text-[#011F7B]">{Math.min(indexOfLastItem, currentData.length)}</span> dari{" "}
+                <span className="font-bold text-[#011F7B]">{currentData.length}</span> tryout
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage((p) => p - 1)}
+                  className="px-4 py-2 rounded-xl border border-slate-200 text-sm font-bold text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                >
+                  Sebelumnya
+                </button>
+                
+                <div className="flex gap-1.5">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      className={`w-10 h-10 rounded-xl text-sm font-bold transition-all ${
+                        currentPage === page
+                          ? "bg-[#011F7B] text-white shadow-lg shadow-[#011F7B]/20"
+                          : "border border-slate-200 text-slate-600 hover:bg-slate-50"
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  ))}
                 </div>
 
-                <Button className="mt-6 w-full" onClick={() => handleStart(item.id, mode === "SIMULATION" ? "Ujian" : "Latihan")} icon={HiOutlineChevronRight}>
-                  {mode === "SIMULATION" ? "Mulai Ujian" : "Mulai Latihan"}
-                </Button>
-              </Card>
-            </motion.div>
-          ))}
+                <button
+                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage((p) => p + 1)}
+                  className="px-4 py-2 rounded-xl border border-slate-200 text-sm font-bold text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                >
+                  Selanjutnya
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -158,3 +217,4 @@ export default function TryoutPage() {
     </div>
   );
 }
+

@@ -46,6 +46,14 @@ export const updatePassword = async (req, res, next) => {
   try {
     const data = updatePasswordSchema.parse(req.body);
     const userId = BigInt(req.user.id);
+
+    if (!req.user.password) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Akun Anda terdaftar melalui Google OAuth. Silakan hubungi admin atau gunakan fitur set password jika tersedia.' 
+      });
+    }
+
     const isMatch = await bcrypt.compare(data.currentPassword, req.user.password);
     
     if (!isMatch) {

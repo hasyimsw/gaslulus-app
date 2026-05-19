@@ -99,7 +99,7 @@ export default function ProfilePage() {
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
       <div>
-        <h1 className="text-3xl font-extrabold text-slate-900 mb-2">Profil Saya</h1>
+        <h1 className="text-3xl font-extrabold text-slate-900 mb-2">Profil <span className="text-amber-500 font-black">Saya</span></h1>
         <p className="text-slate-500 font-medium">Kelola informasi akun dan keamanan kamu.</p>
       </div>
 

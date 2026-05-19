@@ -22,8 +22,32 @@ export default function AdminExams({ type = 'SIMULATION' }) {
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState({ title: '', description: '', category: 'CPNS', subCategory: '', totalQuestions: 30, duration: 60, passingScore: 60, type: type, isPublished: false });
+  
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   const CATEGORIES = ["Semua", "SD", "SMP", "SMA", "CPNS"];
+
+  // Filter and calculate pages
+  const filteredExams = exams
+    .filter(e => e.type === type)
+    .filter(e => activeCategory === 'Semua' || e.category === activeCategory)
+    .filter(e => e.title.toLowerCase().includes(search.toLowerCase()));
+
+  const totalPages = Math.ceil(filteredExams.length / itemsPerPage);
+
+  // Reset page to 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, activeCategory, type]);
+
+  // Clamp currentPage to totalPages if it exceeds it due to deletion
+  useEffect(() => {
+    if (totalPages > 0 && currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [exams, totalPages, currentPage]);
 
   useEffect(() => {
     setForm(f => ({ ...f, type }));
@@ -76,6 +100,10 @@ export default function AdminExams({ type = 'SIMULATION' }) {
     }
   };
 
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentExams = filteredExams.slice(indexOfFirstItem, indexOfLastItem);
+
   return (
     <div className="space-y-8">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -111,53 +139,63 @@ export default function AdminExams({ type = 'SIMULATION' }) {
       </div>
 
       {showForm && (
-        <Card className="p-8 lg:p-10 border-2 border-[#011F7B]/5 shadow-xl">
-          <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="md:col-span-2">
-              <Input label="Judul Ujian" value={form.title} onChange={e => setForm({...form, title: e.target.value})} required />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm h-screen">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto border border-white/20">
+            <div className="sticky top-0 bg-white/90 backdrop-blur-md px-6 py-4 border-b border-slate-100 flex items-center justify-between z-10">
+              <h3 className="text-lg font-extrabold text-slate-900">
+                {editing ? 'Edit Paket Ujian' : 'Tambah Paket Baru'}
+              </h3>
+              <button 
+                onClick={() => setShowForm(false)}
+                className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors"
+              >
+                <HiOutlineX size={20} />
+              </button>
             </div>
-            <div>
-              <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1.5">Kategori</label>
-              <select className="w-full px-4 py-3 bg-white border-2 border-slate-200 rounded-xl text-slate-900 text-sm font-medium focus:border-[#011F7B] focus:ring-2 focus:ring-[#011F7B]/5 outline-none" value={form.category} onChange={e => setForm({...form, category: e.target.value})}>
-                {['SD', 'SMP', 'SMA', 'CPNS'].map(c => <option key={c}>{c}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1.5">Tipe Ujian</label>
-              <select className="w-full px-4 py-3 bg-white border-2 border-slate-200 rounded-xl text-slate-900 text-sm font-medium focus:border-[#011F7B] focus:ring-2 focus:ring-[#011F7B]/5 outline-none" value={form.type} onChange={e => setForm({...form, type: e.target.value})}>
-                <option value="SIMULATION">SIMULASI LENGKAP</option>
-                <option value="PRACTICE">LATIHAN MAPEL</option>
-              </select>
-            </div>
-            <Input label="Durasi (Menit)" type="number" value={form.duration} onChange={e => setForm({...form, duration: e.target.value})} required />
-            <Input label="Total Soal (Target)" type="number" value={form.totalQuestions} onChange={e => setForm({...form, totalQuestions: e.target.value})} required />
-            <Input label="Passing Score (%)" type="number" value={form.passingScore} onChange={e => setForm({...form, passingScore: e.target.value})} required />
             
-            <div className="md:col-span-2">
-              <label className="flex items-center gap-3 cursor-pointer group">
-                <div className="relative">
-                  <input type="checkbox" className="sr-only" checked={form.isPublished} onChange={e => setForm({...form, isPublished: e.target.checked})} />
-                  <div className={`w-10 h-5 rounded-full transition-colors ${form.isPublished ? 'bg-[#011F7B]' : 'bg-slate-200'}`}></div>
-                  <div className={`absolute top-1 left-1 w-3 h-3 bg-white rounded-full transition-transform ${form.isPublished ? 'translate-x-5' : ''}`}></div>
-                </div>
-                <span className="text-sm font-bold text-slate-700 group-hover:text-[#011F7B] transition-colors">Publikasikan Paket Ujian</span>
-              </label>
-            </div>
+            <form onSubmit={handleSubmit} className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="md:col-span-2">
+                <Input label="Judul Ujian" value={form.title} onChange={e => setForm({...form, title: e.target.value})} required />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1.5">Kategori</label>
+                <select className="w-full px-4 py-3 bg-white border-2 border-slate-200 rounded-xl text-slate-900 text-sm font-medium focus:border-[#011F7B] focus:ring-2 focus:ring-[#011F7B]/5 outline-none" value={form.category} onChange={e => setForm({...form, category: e.target.value})}>
+                  {['SD', 'SMP', 'SMA', 'CPNS'].map(c => <option key={c}>{c}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1.5">Tipe Ujian</label>
+                <select className="w-full px-4 py-3 bg-white border-2 border-slate-200 rounded-xl text-slate-900 text-sm font-medium focus:border-[#011F7B] focus:ring-2 focus:ring-[#011F7B]/5 outline-none" value={form.type} onChange={e => setForm({...form, type: e.target.value})}>
+                  <option value="SIMULATION">SIMULASI LENGKAP</option>
+                  <option value="PRACTICE">LATIHAN MAPEL</option>
+                </select>
+              </div>
+              <Input label="Durasi (Menit)" type="number" value={form.duration} onChange={e => setForm({...form, duration: e.target.value})} required />
+              <Input label="Total Soal (Target)" type="number" value={form.totalQuestions} onChange={e => setForm({...form, totalQuestions: e.target.value})} required />
+              <Input label="Passing Score (%)" type="number" value={form.passingScore} onChange={e => setForm({...form, passingScore: e.target.value})} required />
+              
+              <div className="md:col-span-2">
+                <label className="flex items-center gap-3 cursor-pointer group">
+                  <div className="relative">
+                    <input type="checkbox" className="sr-only" checked={form.isPublished} onChange={e => setForm({...form, isPublished: e.target.checked})} />
+                    <div className={`w-10 h-5 rounded-full transition-colors ${form.isPublished ? 'bg-[#011F7B]' : 'bg-slate-200'}`}></div>
+                    <div className={`absolute top-1 left-1 w-3 h-3 bg-white rounded-full transition-transform ${form.isPublished ? 'translate-x-5' : ''}`}></div>
+                  </div>
+                  <span className="text-sm font-bold text-slate-700 group-hover:text-[#011F7B] transition-colors">Publikasikan Paket Ujian</span>
+                </label>
+              </div>
 
-            <div className="md:col-span-2 flex gap-3 pt-4 border-t border-slate-50 mt-2">
-              <Button type="submit" icon={HiOutlineSave}>Simpan Perubahan</Button>
-              <Button variant="outline" onClick={() => setShowForm(false)} icon={HiOutlineX}>Batal</Button>
-            </div>
-          </form>
-        </Card>
+              <div className="md:col-span-2 flex flex-col sm:flex-row gap-3 pt-6 border-t border-slate-100 mt-2">
+                <Button type="submit" icon={HiOutlineSave} className="flex-1 w-full">Simpan Perubahan</Button>
+                <Button variant="outline" type="button" onClick={() => setShowForm(false)} icon={HiOutlineX} className="flex-1 w-full">Batal</Button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
 
       <div className="flex flex-col gap-4">
-        {exams
-          .filter(e => e.type === type)
-          .filter(e => activeCategory === 'Semua' || e.category === activeCategory)
-          .filter(e => e.title.toLowerCase().includes(search.toLowerCase()))
-          .map(exam => (
+        {currentExams.map(exam => (
           <Card key={exam.id} className="p-5 flex flex-col sm:flex-row items-center justify-between group gap-6">
             <div className="text-center sm:text-left">
               <div className="font-extrabold text-lg text-slate-900 mb-1.5 group-hover:text-[#011F7B] transition-colors">{exam.title}</div>
@@ -181,7 +219,58 @@ export default function AdminExams({ type = 'SIMULATION' }) {
             </div>
           </Card>
         ))}
+
+        {!loading && filteredExams.length === 0 && (
+          <div className="text-center py-16 flex flex-col items-center">
+            <div className="text-4xl mb-3 opacity-20">🔎</div>
+            <h3 className="text-base font-bold text-slate-900">Tidak ada paket ditemukan</h3>
+            <p className="text-slate-500 text-xs">Coba cari dengan kata kunci lain atau ganti kategori.</p>
+          </div>
+        )}
       </div>
+
+      {totalPages > 1 && (
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 border-t border-slate-100">
+          <span className="text-xs text-slate-500 font-bold uppercase tracking-wider">
+            Menampilkan <span className="text-[#011F7B]">{indexOfFirstItem + 1}</span> -{" "}
+            <span className="text-[#011F7B]">{Math.min(indexOfLastItem, filteredExams.length)}</span> dari{" "}
+            <span className="text-[#011F7B]">{filteredExams.length}</span> paket
+          </span>
+          <div className="flex items-center gap-2">
+            <button
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage((p) => p - 1)}
+              className="px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            >
+              Sebelumnya
+            </button>
+            
+            <div className="flex gap-1">
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                <button
+                  key={page}
+                  onClick={() => setCurrentPage(page)}
+                  className={`w-8 h-8 rounded-xl text-xs font-bold transition-all ${
+                    currentPage === page
+                      ? "bg-[#011F7B] text-white shadow-md shadow-[#011F7B]/20"
+                      : "border border-slate-200 text-slate-600 hover:bg-slate-50"
+                  }`}
+                >
+                  {page}
+                </button>
+              ))}
+            </div>
+
+            <button
+              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage((p) => p + 1)}
+              className="px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            >
+              Selanjutnya
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

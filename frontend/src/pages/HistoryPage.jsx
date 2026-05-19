@@ -55,13 +55,15 @@ export default function HistoryPage() {
   };
 
   const totalPages = Math.ceil(history.length / itemsPerPage);
-  const paginatedHistory = history.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const paginatedHistory = history.slice(indexOfFirstItem, indexOfLastItem);
 
   return (
     <div className="space-y-8">
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-extrabold text-slate-900 mb-1">Riwayat <span className="text-amber-500 font-black">Tryout</span></h1>
+          <h1 className="text-3xl font-extrabold text-slate-900 mb-1">Riwayat <span className="text-[#011F7B] font-black">Tryout</span></h1>
           <p className="text-slate-500 font-medium">Pantau perkembangan skor kamu dari waktu ke waktu.</p>
         </div>
         {history.length > 0 && (
@@ -129,19 +131,45 @@ export default function HistoryPage() {
           ))}
 
           {totalPages > 1 && (
-            <div className="flex justify-center items-center gap-2 mt-8">
-              {[...Array(totalPages)].map((_, i) => {
-                const page = i + 1;
-                return (
-                  <button
-                    key={page}
-                    onClick={() => { setCurrentPage(page); window.scrollTo({ top: 0, behavior: "smooth" }); }}
-                    className={`w-10 h-10 rounded-xl text-xs font-bold transition-all ${currentPage === page ? "bg-blue-600 text-white shadow-lg shadow-blue-100" : "bg-white text-slate-400 border border-slate-100 hover:border-blue-200"}`}
-                  >
-                    {page}
-                  </button>
-                );
-              })}
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-8 border-t border-slate-100 mt-4">
+              <span className="text-sm text-slate-500 font-medium">
+                Menampilkan <span className="font-bold text-[#011F7B]">{indexOfFirstItem + 1}</span> -{" "}
+                <span className="font-bold text-[#011F7B]">{Math.min(indexOfLastItem, history.length)}</span> dari{" "}
+                <span className="font-bold text-[#011F7B]">{history.length}</span> riwayat
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  disabled={currentPage === 1}
+                  onClick={() => { setCurrentPage((p) => p - 1); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+                  className="px-4 py-2 rounded-xl border border-slate-200 text-sm font-bold text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                >
+                  Sebelumnya
+                </button>
+                
+                <div className="flex gap-1.5">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                    <button
+                      key={page}
+                      onClick={() => { setCurrentPage(page); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+                      className={`w-10 h-10 rounded-xl text-sm font-bold transition-all ${
+                        currentPage === page
+                          ? "bg-[#011F7B] text-white shadow-lg shadow-[#011F7B]/20"
+                          : "border border-slate-200 text-slate-600 hover:bg-slate-50"
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  ))}
+                </div>
+
+                <button
+                  disabled={currentPage === totalPages}
+                  onClick={() => { setCurrentPage((p) => p + 1); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+                  className="px-4 py-2 rounded-xl border border-slate-200 text-sm font-bold text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                >
+                  Selanjutnya
+                </button>
+              </div>
             </div>
           )}
         </div>

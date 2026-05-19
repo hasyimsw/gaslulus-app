@@ -11,12 +11,16 @@ import {
   HiOutlineRefresh,
   HiAcademicCap,
   HiOutlineCheckCircle,
+  HiOutlineChevronDown,
+  HiOutlineChevronUp,
+  HiOutlineXCircle,
 } from "react-icons/hi";
 
 export default function ResultPage() {
   const { id } = useParams();
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [expandedQ, setExpandedQ] = useState(null);
 
   useEffect(() => {
     api.get(`/results/${id}`).then((r) => setResult(r.data.data)).catch(() => {}).finally(() => setLoading(false));
@@ -92,10 +96,74 @@ export default function ResultPage() {
           </Card>
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-4 pt-4">
+        <div className="flex flex-col sm:flex-row gap-4 pt-8 pb-4">
           <Button as={Link} to="/tryout" className="flex-1 py-4 text-sm" icon={HiOutlineRefresh}>Coba Tryout Lain</Button>
           <Button as={Link} to="/dashboard" variant="outline" className="flex-1 py-4 text-sm" icon={HiOutlineChevronRight}>Ke Dashboard</Button>
         </div>
+
+        {result.answers && result.answers.length > 0 && (
+          <div className="pt-8 space-y-4">
+            <h2 className="text-xl font-extrabold text-slate-900 mb-6">Pembahasan Soal</h2>
+            {result.answers.map((ans, idx) => {
+              const isExpanded = expandedQ === ans.id;
+              const q = ans.question;
+              if (!q) return null;
+
+              return (
+                <Card key={ans.id} className="overflow-hidden border border-slate-100">
+                  <div 
+                    className="p-6 cursor-pointer hover:bg-slate-50 transition-colors flex gap-4"
+                    onClick={() => setExpandedQ(isExpanded ? null : ans.id)}
+                  >
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <Badge variant={ans.isCorrect ? "success" : (ans.selectedOptionId ? "danger" : "warning")}>
+                          {ans.isCorrect ? "Benar" : (ans.selectedOptionId ? "Salah" : "Kosong")}
+                        </Badge>
+                        <span className="text-xs font-bold text-slate-400">Soal {idx + 1}</span>
+                      </div>
+                      <p className="text-slate-800 font-medium whitespace-pre-wrap">{q.question}</p>
+                    </div>
+                    <div className="text-slate-400 shrink-0">
+                      {isExpanded ? <HiOutlineChevronUp size={20} /> : <HiOutlineChevronDown size={20} />}
+                    </div>
+                  </div>
+
+                  {isExpanded && (
+                    <div className="p-6 pt-0 border-t border-slate-100 bg-slate-50/50 space-y-6">
+                      <div className="space-y-3 mt-6">
+                        {q.options.map((opt, i) => {
+                          const isSelected = String(opt.id) === String(ans.selectedOptionId);
+                          const isCorrect = opt.isCorrect;
+                          
+                          let bgClass = "bg-white border-slate-200 text-slate-600";
+                          if (isCorrect) bgClass = "bg-emerald-50 border-emerald-200 text-emerald-800 font-bold shadow-sm shadow-emerald-100";
+                          else if (isSelected && !isCorrect) bgClass = "bg-red-50 border-red-200 text-red-700 font-bold shadow-sm shadow-red-100";
+
+                          return (
+                            <div key={opt.id} className={`p-4 rounded-xl border-2 text-sm flex gap-3 transition-all ${bgClass}`}>
+                              <span className="opacity-50 shrink-0">{String.fromCharCode(65+i)}.</span>
+                              <span className="flex-1">{opt.optionText}</span>
+                              {isCorrect && <HiOutlineCheckCircle className="text-emerald-500 shrink-0" size={20} />}
+                              {isSelected && !isCorrect && <HiOutlineXCircle className="text-red-500 shrink-0" size={20} />}
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      {q.explanation && (
+                        <div className="p-5 bg-[#011F7B]/5 rounded-xl border border-[#011F7B]/10">
+                          <h4 className="text-xs font-extrabold text-[#011F7B] uppercase tracking-widest mb-2">Penjelasan:</h4>
+                          <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">{q.explanation}</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </Card>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );

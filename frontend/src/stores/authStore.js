@@ -63,7 +63,27 @@ export const useAuthStore = create(
     }),
     {
       name: 'gaslulus_storage',
-      storage: createJSONStorage(() => localStorage),
+      storage: createJSONStorage(() => ({
+        getItem: (name) => {
+          const local = localStorage.getItem(name);
+          if (local) return local;
+          return sessionStorage.getItem(name);
+        },
+        setItem: (name, value) => {
+          const remember = localStorage.getItem('gaslulus_remember_me') === 'true';
+          if (remember) {
+            localStorage.setItem(name, value);
+            sessionStorage.removeItem(name);
+          } else {
+            sessionStorage.setItem(name, value);
+            localStorage.removeItem(name);
+          }
+        },
+        removeItem: (name) => {
+          localStorage.removeItem(name);
+          sessionStorage.removeItem(name);
+        }
+      })),
       partialize: (state) => ({ 
         user: state.user, 
         token: state.token 

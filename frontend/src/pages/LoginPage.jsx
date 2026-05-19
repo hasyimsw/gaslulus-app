@@ -20,13 +20,21 @@ import Badge from "../components/ui/Badge";
 export default function LoginPage() {
   const { login, loginWithGoogle, isLoading } = useAuthStore();
   const navigate = useNavigate();
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(localStorage.getItem("gaslulus_remembered_email") || "");
   const [password, setPassword] = useState("");
   const [showPass, setShowPass] = useState(false);
+  const [rememberMe, setRememberMe] = useState(localStorage.getItem("gaslulus_remember_me") === "true");
   const [googleLoading, setGoogleLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    localStorage.setItem("gaslulus_remember_me", rememberMe ? "true" : "false");
+    if (rememberMe) {
+      localStorage.setItem("gaslulus_remembered_email", email);
+    } else {
+      localStorage.removeItem("gaslulus_remembered_email");
+    }
+
     const result = await login(email, password);
     if (result.success) {
       Swal.fire({ title: "Berhasil!", text: "Selamat datang kembali.", icon: "success", timer: 1500, showConfirmButton: false }).then(() => navigate("/dashboard"));
@@ -38,6 +46,7 @@ export default function LoginPage() {
   const handleGoogleSuccess = async (tokenResponse) => {
     setGoogleLoading(true);
     try {
+      localStorage.setItem("gaslulus_remember_me", rememberMe ? "true" : "false");
       const result = await loginWithGoogle(tokenResponse.access_token);
       if (result.success) {
         Swal.fire({ title: "Berhasil!", text: "Login dengan Google berhasil.", icon: "success", timer: 1500, showConfirmButton: false }).then(() => navigate("/dashboard"));
@@ -86,6 +95,21 @@ export default function LoginPage() {
                 </button>
               </div>
 
+              <div className="flex items-center justify-between !mt-2">
+                <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-slate-600 select-none">
+                  <input
+                    type="checkbox"
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
+                    className="w-4 h-4 rounded border-slate-300 text-[#011F7B] focus:ring-[#011F7B] accent-[#011F7B]"
+                  />
+                  Ingat Saya
+                </label>
+                <Link to="/forgot-password" className="text-xs font-bold text-[#011F7B] hover:text-blue-800 hover:underline transition-colors">
+                  Lupa Password?
+                </Link>
+              </div>
+
               <Button type="submit" isLoading={isLoading} className="w-full mt-2" icon={HiOutlineArrowRight}>
                 Masuk ke Akun
               </Button>
@@ -129,9 +153,9 @@ export default function LoginPage() {
       <div className="hidden lg:flex flex-[1.2] bg-gradient-to-br from-[#011F7B] to-[#010f3d] items-center justify-center p-16 text-center h-screen sticky top-0">
         <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}>
           <h2 className="text-white text-4xl font-extrabold mb-6 leading-tight">"Persiapan terbaik untuk hari esok adalah melakukan yang terbaik hari ini."</h2>
-          <p className="text-white/60 text-lg font-medium opacity-80">— GasLulus Team</p>
+          <p className="text-white/60 text-lg font-medium opacity-80">— Hasyim Ganteng.</p>
         </motion.div>
-      </div>
+      </div> 
     </div>
   );
 }
