@@ -7,10 +7,13 @@ const api = axios.create({
 
 api.interceptors.request.use((config) => {
   try {
-    const storage = localStorage.getItem('gaslulus_storage');
+    let storage = localStorage.getItem('gaslulus_storage');
+    if (!storage) {
+      storage = sessionStorage.getItem('gaslulus_storage');
+    }
     if (storage) {
       const { state } = JSON.parse(storage);
-      if (state.token) {
+      if (state && state.token) {
         config.headers.Authorization = `Bearer ${state.token}`;
       }
     }
@@ -25,6 +28,7 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401 && window.location.pathname !== '/login') {
       localStorage.removeItem('gaslulus_storage');
+      sessionStorage.removeItem('gaslulus_storage');
       window.location.href = '/login';
     }
     return Promise.reject(error);

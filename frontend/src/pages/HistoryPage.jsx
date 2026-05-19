@@ -63,7 +63,7 @@ export default function HistoryPage() {
     <div className="space-y-8">
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-extrabold text-slate-900 mb-1">Riwayat <span className="text-[#011F7B] font-black">Tryout</span></h1>
+          <h1 className="text-3xl font-extrabold text-slate-900 mb-1">Riwayat <span className="text-amber-500 font-black">Tryout</span></h1>
           <p className="text-slate-500 font-medium">Pantau perkembangan skor kamu dari waktu ke waktu.</p>
         </div>
         {history.length > 0 && (
@@ -110,7 +110,7 @@ export default function HistoryPage() {
                 </div>
 
                 <div className="flex-1 min-w-0 text-center sm:text-left">
-                  <Badge variant="primary" className="mb-2 uppercase tracking-widest text-[9px]">{item.category}</Badge>
+                  <Badge variant={item.category === 'CPNS' ? 'danger' : item.category === 'SMA' ? 'warning' : item.category === 'SMP' ? 'primary' : 'success'} className="mb-2 uppercase tracking-widest text-[9px]">{item.category}</Badge>
                   <div className="font-bold text-lg text-slate-900 mb-2 truncate">{item.examTitle}</div>
                   <div className="flex flex-wrap justify-center sm:justify-start gap-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                     <span className="flex items-center gap-1.5"><HiOutlineClock /> {formatDuration(item.durationUsed)}</span>
