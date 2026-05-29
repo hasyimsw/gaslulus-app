@@ -19,11 +19,17 @@ export default function HistoryPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  useEffect(() => { fetchHistory(); }, []);
+  useEffect(() => {
+    fetchHistory();
+  }, []);
 
   const fetchHistory = () => {
     setLoading(true);
-    api.get("/results").then((r) => setHistory(r.data.data)).catch(() => {}).finally(() => setLoading(false));
+    api
+      .get("/results")
+      .then((r) => setHistory(r.data.data))
+      .catch(() => {})
+      .finally(() => setLoading(false));
   };
 
   const handleClear = async () => {
@@ -34,7 +40,7 @@ export default function HistoryPage() {
       showCancelButton: true,
       confirmButtonColor: "#ef4444",
       confirmButtonText: "Ya, Hapus!",
-      cancelButtonText: "Batal"
+      cancelButtonText: "Batal",
     });
 
     if (result.isConfirmed) {
@@ -63,11 +69,20 @@ export default function HistoryPage() {
     <div className="space-y-8">
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-extrabold text-slate-900 mb-1">Riwayat <span className="text-amber-500 font-black">Tryout</span></h1>
-          <p className="text-slate-500 font-medium">Pantau perkembangan skor kamu dari waktu ke waktu.</p>
+          <h1 className="text-3xl font-bold text-primary mb-1">
+            Riwayat <span className="text-amber-500 font-bold">Tryout</span>
+          </h1>
+          <p className="text-slate-500 font-medium">
+            Pantau perkembangan skor kamu dari waktu ke waktu.
+          </p>
         </div>
         {history.length > 0 && (
-          <Button variant="danger" onClick={handleClear} icon={HiOutlineTrash} className="text-xs">
+          <Button
+            variant="danger"
+            onClick={handleClear}
+            icon={HiOutlineTrash}
+            className="text-xs"
+          >
             Hapus Riwayat
           </Button>
         )}
@@ -76,7 +91,10 @@ export default function HistoryPage() {
       {loading ? (
         <div className="space-y-4">
           {[1, 2, 3, 4, 5].map((i) => (
-            <Card key={i} className="p-5 flex flex-col sm:flex-row items-center gap-6 animate-pulse">
+            <Card
+              key={i}
+              className="p-5 flex flex-col sm:flex-row items-center gap-6 animate-pulse"
+            >
               <div className="w-14 h-14 rounded-2xl bg-slate-100 shrink-0" />
               <div className="flex-1 min-w-0 space-y-3">
                 <div className="w-16 h-3 bg-slate-100 rounded" />
@@ -96,35 +114,85 @@ export default function HistoryPage() {
       ) : history.length === 0 ? (
         <Card className="text-center py-24 flex flex-col items-center">
           <div className="text-5xl mb-4 grayscale opacity-20">📋</div>
-          <h3 className="text-xl font-bold text-slate-900 mb-2">Belum ada riwayat</h3>
-          <p className="text-slate-500 font-medium mb-8">Kamu belum mengerjakan tryout apapun.</p>
-          <Button as={Link} to="/tryout" icon={HiOutlineChevronRight}>Mulai Tryout Pertama</Button>
+          <h3 className="text-xl font-bold text-slate-900 mb-2">
+            Belum ada riwayat
+          </h3>
+          <p className="text-slate-500 font-medium mb-8">
+            Kamu belum mengerjakan tryout apapun.
+          </p>
+          <Button as={Link} to="/tryout" icon={HiOutlineChevronRight}>
+            Mulai Tryout Pertama
+          </Button>
         </Card>
       ) : (
         <div className="flex flex-col gap-4">
           {paginatedHistory.map((item, i) => (
-            <motion.div key={item.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }}>
-              <Card className="p-5 flex flex-col sm:flex-row items-center gap-6 group" hoverable>
+            <motion.div
+              key={item.id}
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: i * 0.05 }}
+            >
+              <Card
+                className="p-5 flex flex-col sm:flex-row items-center gap-6 group"
+                hoverable
+              >
                 <div className="w-14 h-14 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600 shrink-0 group-hover:scale-110 transition-transform">
                   <HiOutlineBadgeCheck size={32} />
                 </div>
 
                 <div className="flex-1 min-w-0 text-center sm:text-left">
-                  <Badge variant={item.category === 'CPNS' ? 'danger' : item.category === 'SMA' ? 'warning' : item.category === 'SMP' ? 'primary' : 'success'} className="mb-2 uppercase tracking-widest text-[9px]">{item.category}</Badge>
-                  <div className="font-bold text-lg text-slate-900 mb-2 truncate">{item.examTitle}</div>
+                  <Badge
+                    variant={
+                      item.category === "CPNS"
+                        ? "danger"
+                        : item.category === "SMA"
+                          ? "warning"
+                          : item.category === "SMP"
+                            ? "primary"
+                            : "success"
+                    }
+                    className="mb-2 uppercase tracking-widest text-[9px]"
+                  >
+                    {item.category}
+                  </Badge>
+                  <div className="font-bold text-lg text-slate-900 mb-2 truncate">
+                    {item.examTitle}
+                  </div>
                   <div className="flex flex-wrap justify-center sm:justify-start gap-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                    <span className="flex items-center gap-1.5"><HiOutlineClock /> {formatDuration(item.durationUsed)}</span>
-                    <span className="text-emerald-500 bg-emerald-50 px-2 py-1 rounded-lg">{item.totalCorrect} Benar</span>
-                    <span className="text-red-500 bg-red-50 px-2 py-1 rounded-lg">{item.totalWrong} Salah</span>
+                    <span className="flex items-center gap-1.5">
+                      <HiOutlineClock /> {formatDuration(item.durationUsed)}
+                    </span>
+                    <span className="text-emerald-500 bg-emerald-50 px-2 py-1 rounded-lg">
+                      {item.totalCorrect} Benar
+                    </span>
+                    <span className="text-red-500 bg-red-50 px-2 py-1 rounded-lg">
+                      {item.totalWrong} Salah
+                    </span>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-8 w-full sm:w-auto justify-between sm:justify-end pt-4 sm:pt-0 border-t sm:border-t-0 border-slate-50">
                   <div className="text-center">
-                    <div className={`text-3xl font-black leading-none ${item.passed ? "text-emerald-500" : "text-red-500"}`}>{Math.round(item.score)}</div>
-                    <Badge variant={item.passed ? "success" : "danger"} className="mt-2 text-[8px]">{item.passed ? "LULUS" : "GAGAL"}</Badge>
+                    <div
+                      className={`text-3xl font-semibold leading-none ${item.passed ? "text-emerald-500" : "text-red-500"}`}
+                    >
+                      {Math.round(item.score)}
+                    </div>
+                    <Badge
+                      variant={item.passed ? "success" : "danger"}
+                      className="mt-2 text-[8px]"
+                    >
+                      {item.passed ? "LULUS" : "GAGAL"}
+                    </Badge>
                   </div>
-                  <Button as={Link} to={`/result/${item.id}`} variant="outline" className="p-3" icon={HiOutlineChevronRight} />
+                  <Button
+                    as={Link}
+                    to={`/result/${item.id}`}
+                    variant="outline"
+                    className="p-3"
+                    icon={HiOutlineChevronRight}
+                  />
                 </div>
               </Card>
             </motion.div>
@@ -133,38 +201,59 @@ export default function HistoryPage() {
           {totalPages > 1 && (
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-8 border-t border-slate-100 mt-4">
               <span className="text-sm text-slate-500 font-medium">
-                Menampilkan <span className="font-bold text-[#011F7B]">{indexOfFirstItem + 1}</span> -{" "}
-                <span className="font-bold text-[#011F7B]">{Math.min(indexOfLastItem, history.length)}</span> dari{" "}
-                <span className="font-bold text-[#011F7B]">{history.length}</span> riwayat
+                Menampilkan{" "}
+                <span className="font-bold text-[#011F7B]">
+                  {indexOfFirstItem + 1}
+                </span>{" "}
+                -{" "}
+                <span className="font-bold text-[#011F7B]">
+                  {Math.min(indexOfLastItem, history.length)}
+                </span>{" "}
+                dari{" "}
+                <span className="font-bold text-[#011F7B]">
+                  {history.length}
+                </span>{" "}
+                riwayat
               </span>
               <div className="flex items-center gap-2">
                 <button
                   disabled={currentPage === 1}
-                  onClick={() => { setCurrentPage((p) => p - 1); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+                  onClick={() => {
+                    setCurrentPage((p) => p - 1);
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                  }}
                   className="px-4 py-2 rounded-xl border border-slate-200 text-sm font-bold text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                 >
                   Sebelumnya
                 </button>
-                
+
                 <div className="flex gap-1.5">
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                    <button
-                      key={page}
-                      onClick={() => { setCurrentPage(page); window.scrollTo({ top: 0, behavior: "smooth" }); }}
-                      className={`w-10 h-10 rounded-xl text-sm font-bold transition-all ${
-                        currentPage === page
-                          ? "bg-[#011F7B] text-white shadow-lg shadow-[#011F7B]/20"
-                          : "border border-slate-200 text-slate-600 hover:bg-slate-50"
-                      }`}
-                    >
-                      {page}
-                    </button>
-                  ))}
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                    (page) => (
+                      <button
+                        key={page}
+                        onClick={() => {
+                          setCurrentPage(page);
+                          window.scrollTo({ top: 0, behavior: "smooth" });
+                        }}
+                        className={`w-10 h-10 rounded-xl text-sm font-bold transition-all ${
+                          currentPage === page
+                            ? "bg-[#011F7B] text-white shadow-lg shadow-[#011F7B]/20"
+                            : "border border-slate-200 text-slate-600 hover:bg-slate-50"
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    ),
+                  )}
                 </div>
 
                 <button
                   disabled={currentPage === totalPages}
-                  onClick={() => { setCurrentPage((p) => p + 1); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+                  onClick={() => {
+                    setCurrentPage((p) => p + 1);
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                  }}
                   className="px-4 py-2 rounded-xl border border-slate-200 text-sm font-bold text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                 >
                   Selanjutnya

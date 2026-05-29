@@ -57,7 +57,7 @@ export default function FAQ() {
             transition={{ duration: 0.8 }}
             className="md:w-1/3"
           >
-            <Badge variant="primary" className="mb-6 px-4 py-1.5 text-[10px] font-black uppercase tracking-[0.2em] bg-primary/10 text-primary border-none">
+            <Badge variant="primary" className="mb-6 px-4 py-1.5 text-[10px] font-semibold uppercase tracking-[0.2em] bg-primary/10 text-primary border-none">
               Support
             </Badge>
             <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-6 tracking-tight leading-[1.1]">

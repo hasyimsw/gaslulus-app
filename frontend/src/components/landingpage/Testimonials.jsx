@@ -29,7 +29,7 @@ export default function Testimonials() {
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-20">
           <Badge variant="warning" className="mb-4">Testimoni</Badge>
-          <h2 className="text-3xl md:text-5xl font-black text-slate-900 mb-6">Apa Kata Mereka?</h2>
+          <h2 className="text-3xl md:text-5xl font-semibold text-slate-900 mb-6">Apa Kata Mereka?</h2>
           <p className="text-slate-500 max-w-2xl mx-auto font-medium">Ribuan siswa telah membuktikan efektivitas belajar bersama GasLulus.</p>
         </div>
 
@@ -42,7 +42,7 @@ export default function Testimonials() {
               <div className="flex items-center gap-4 mb-6">
                 <img src={t.avatar} alt={t.name} className="w-14 h-14 rounded-2xl bg-white border border-slate-100 shadow-sm" />
                 <div>
-                  <h4 className="font-black text-slate-900">{t.name}</h4>
+                  <h4 className="font-semibold text-slate-900">{t.name}</h4>
                   <p className="text-xs font-bold text-[#011F7B] uppercase tracking-widest">{t.role}</p>
                 </div>
               </div>

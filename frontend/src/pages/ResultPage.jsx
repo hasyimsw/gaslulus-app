@@ -45,11 +45,11 @@ export default function ResultPage() {
             <HiAcademicCap size={48} />
           </motion.div>
           
-          <h1 className="text-4xl font-black text-slate-900 mb-2 tracking-tight">Hasil Tryout Kamu</h1>
+          <h1 className="text-4xl font-semibold text-slate-900 mb-2 tracking-tight">Hasil Tryout Kamu</h1>
           <p className="text-slate-400 font-bold mb-12 tracking-widest uppercase text-[10px]">{result.exam?.title}</p>
 
           <div className="flex justify-center items-baseline gap-2 mb-6">
-            <span className={`text-9xl font-black tracking-tighter ${passed ? "text-emerald-500" : "text-red-500"}`}>
+            <span className={`text-9xl font-semibold tracking-tighter ${passed ? "text-emerald-500" : "text-red-500"}`}>
               {Math.round(result.score)}
             </span>
             <span className="text-3xl text-slate-200 font-bold">/ 100</span>
@@ -68,7 +68,7 @@ export default function ResultPage() {
               { val: result.totalSkipped, lab: "Kosong", color: "text-amber-500" },
             ].map((s, i) => (
               <div key={i}>
-                <div className={`text-4xl font-black ${s.color}`}>{s.val}</div>
+                <div className={`text-4xl font-semibold ${s.color}`}>{s.val}</div>
                 <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">{s.lab}</div>
               </div>
             ))}

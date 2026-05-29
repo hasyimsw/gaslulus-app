@@ -17,7 +17,7 @@ export default function ExamPage() {
   const { id, category, subject } = useParams();
   const isPractice = !!subject;
   const navigate = useNavigate();
-  
+
   const [exam, setExam] = useState(null);
   const [questions, setQuestions] = useState([]);
   const [answers, setAnswers] = useState({});
@@ -73,14 +73,14 @@ export default function ExamPage() {
     if (!exam) return;
     const handleViolation = () => {
       Swal.fire({
-        title: '<span class="text-xl font-black text-red-600">Peringatan Anti-Cheat!</span>',
+        title: '<span class="text-xl font-semibold text-red-600">Peringatan Anti-Cheat!</span>',
         html: '<p class="text-slate-500 font-medium leading-relaxed">Dilarang meninggalkan halaman ujian!</p>',
         icon: "error",
         confirmButtonText: "Saya Mengerti & Kembali",
         confirmButtonColor: "#011F7B",
         allowOutsideClick: false,
         padding: "3rem",
-        customClass: { popup: "rounded-[40px] shadow-2xl border-none", confirmButton: "rounded-2xl px-8 py-4 font-black uppercase tracking-widest text-xs" },
+        customClass: { popup: "rounded-[40px] shadow-2xl border-none", confirmButton: "rounded-2xl px-8 py-4 font-semibold uppercase tracking-widest text-xs" },
       });
     };
     const handleVisibility = () => { if (document.hidden) handleViolation(); };
@@ -93,7 +93,7 @@ export default function ExamPage() {
       if (submitting) return;
       if (!auto) {
         const result = await Swal.fire({
-          title: '<span class="text-2xl font-black text-slate-800">Akhiri Ujian?</span>',
+          title: '<span class="text-2xl font-semibold text-slate-800">Akhiri Ujian?</span>',
           html: '<p class="text-slate-500 font-medium">Pastikan semua soal telah terjawab.</p>',
           icon: "warning",
           showCancelButton: true,
@@ -101,7 +101,7 @@ export default function ExamPage() {
           confirmButtonText: "Ya, Akhiri",
           cancelButtonText: '<span class="text-slate-500">Batal</span>',
           padding: "3rem",
-          customClass: { popup: "rounded-[40px] shadow-2xl border-none", confirmButton: "rounded-2xl px-8 py-4 font-black uppercase tracking-widest text-xs" },
+          customClass: { popup: "rounded-[40px] shadow-2xl border-none", confirmButton: "rounded-2xl px-8 py-4 font-semibold uppercase tracking-widest text-xs" },
         });
         if (!result.isConfirmed) return;
       }
@@ -119,9 +119,9 @@ export default function ExamPage() {
         if (isPractice) { payload.category = category; payload.subject = subject; }
 
         const res = await api.post(endpoint, payload);
-        
+
         await Swal.fire({
-          title: '<span class="text-3xl font-black text-[#011F7B]">Luar Biasa! 🚀</span>',
+          title: '<span class="text-3xl font-semibold text-[#011F7B]">Luar Biasa! 🚀</span>',
           html: `
             <div class="mt-4 space-y-6">
               <p class="text-slate-500 font-medium text-lg leading-relaxed">
@@ -134,7 +134,7 @@ export default function ExamPage() {
                   </svg>
                 </div>
                 <div class="space-y-1">
-                  <p class="text-[10px] font-black text-[#011F7B] uppercase tracking-[0.2em]">Sistem Sedang Menghitung Skor</p>
+                  <p class="text-[10px] font-semibold text-[#011F7B] uppercase tracking-[0.2em]">Sistem Sedang Menghitung Skor</p>
                   <div class="w-48 h-1 bg-slate-100 rounded-full overflow-hidden mx-auto">
                     <div class="h-full bg-[#011F7B] animate-progress-indefinite"></div>
                   </div>
@@ -205,15 +205,15 @@ export default function ExamPage() {
 
       <main className="flex-1 max-w-[1400px] mx-auto w-full p-8 flex flex-col lg:flex-row gap-8">
         <div className="flex-1 space-y-8">
-          <ExamQuestion 
-            question={questions[currentQ]} 
-            index={currentQ} 
-            selectedOption={answers[questions[currentQ]?.id]} 
+          <ExamQuestion
+            question={questions[currentQ]}
+            index={currentQ}
+            selectedOption={answers[questions[currentQ]?.id]}
             onSelect={(qId, optId) => setAnswers({ ...answers, [qId]: optId })}
             isBookmarked={bookmarks.has(questions[currentQ]?.id)}
             onToggleBookmark={toggleBookmark}
           />
-          
+
           <div className="flex items-center justify-between">
             <button
               disabled={currentQ === 0}
@@ -231,13 +231,13 @@ export default function ExamPage() {
           </div>
         </div>
 
-        <ExamSidebar 
-          questions={questions} 
-          currentQ={currentQ} 
-          setCurrentQ={setCurrentQ} 
-          answers={answers} 
-          bookmarks={bookmarks} 
-          onSubmit={() => handleSubmit()} 
+        <ExamSidebar
+          questions={questions}
+          currentQ={currentQ}
+          setCurrentQ={setCurrentQ}
+          answers={answers}
+          bookmarks={bookmarks}
+          onSubmit={() => handleSubmit()}
         />
       </main>
     </div>

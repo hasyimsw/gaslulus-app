@@ -23,7 +23,7 @@ export default function NotFoundPage() {
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ delay: 0.2, type: "spring", stiffness: 100 }}
-              className="text-[150px] md:text-[220px] font-black text-primary/5 leading-none select-none tracking-tighter"
+              className="text-[150px] md:text-[220px] font-semibold text-primary/5 leading-none select-none tracking-tighter"
             >
               404
             </motion.div>
@@ -49,7 +49,7 @@ export default function NotFoundPage() {
           </div>
 
           <div className="space-y-4 mb-12">
-            <h1 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tight">
+            <h1 className="text-3xl md:text-4xl font-semibold text-slate-900 tracking-tight">
               Oops! Halaman <span className="text-primary">Hilang Jejak</span>
             </h1>
             <p className="text-slate-500 font-medium text-base md:text-lg max-w-lg mx-auto leading-relaxed px-4">
@@ -60,14 +60,14 @@ export default function NotFoundPage() {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 px-4">
             <Link
               to="/"
-              className="w-full sm:w-auto flex items-center justify-center gap-3 bg-primary text-white px-10 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-[#011a6b] transition-all shadow-xl shadow-primary/20 hover:scale-105 active:scale-95 group"
+              className="w-full sm:w-auto flex items-center justify-center gap-3 bg-primary text-white px-10 py-4 rounded-2xl font-semibold text-xs uppercase tracking-widest hover:bg-[#011a6b] transition-all shadow-xl shadow-primary/20 hover:scale-105 active:scale-95 group"
             >
               <HiOutlineHome size={20} />
               Ke Beranda
             </Link>
             <button
               onClick={() => window.history.back()}
-              className="w-full sm:w-auto flex items-center justify-center gap-3 bg-white text-slate-600 px-10 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-slate-50 transition-all border border-slate-200 hover:scale-105 active:scale-95 group cursor-pointer"
+              className="w-full sm:w-auto flex items-center justify-center gap-3 bg-white text-slate-600 px-10 py-4 rounded-2xl font-semibold text-xs uppercase tracking-widest hover:bg-slate-50 transition-all border border-slate-200 hover:scale-105 active:scale-95 group cursor-pointer"
             >
               <HiOutlineArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
               Kembali

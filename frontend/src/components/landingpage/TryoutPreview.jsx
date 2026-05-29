@@ -94,7 +94,7 @@ export default function TryoutPreview() {
             
             <motion.h2 
               variants={itemVariants}
-              className="text-3xl md:text-5xl font-black text-slate-900 mb-8 leading-tight"
+              className="text-3xl md:text-5xl font-semibold text-slate-900 mb-8 leading-tight"
             >
               Pengalaman Ujian yang <br />
               <span className="text-amber">Mulus</span> & <span className="text-primary">Interaktif</span>

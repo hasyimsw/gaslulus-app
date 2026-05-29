@@ -52,7 +52,7 @@ export default function Comparison() {
     <section id="comparison" className="px-6 py-24 md:py-32 bg-slate-50/50">
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-20">
-          <Badge variant="primary" className="mb-6 px-4 py-1.5 text-[10px] font-black uppercase tracking-[0.2em] bg-primary/10 text-primary border-none">
+          <Badge variant="primary" className="mb-6 px-4 py-1.5 text-[10px] font-semibold uppercase tracking-[0.2em] bg-primary/10 text-primary border-none">
             Why GasLulus
           </Badge>
           <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-6 tracking-tight">
@@ -73,13 +73,13 @@ export default function Comparison() {
           <div className="bg-slate-50/50 rounded-[2rem] overflow-hidden">
             {/* Header */}
             <div className="grid grid-cols-1 md:grid-cols-5 border-b border-slate-100 bg-white/50 backdrop-blur-sm">
-              <div className="md:col-span-2 p-6 md:p-8 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+              <div className="md:col-span-2 p-6 md:p-8 text-[10px] font-semibold text-slate-400 uppercase tracking-widest">
                 Parameter
               </div>
-              <div className="hidden md:block p-8 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">
+              <div className="hidden md:block p-8 text-[10px] font-semibold text-slate-400 uppercase tracking-widest text-center">
                 Konvensional
               </div>
-              <div className="md:col-span-2 p-6 md:p-8 text-[10px] font-black text-primary uppercase tracking-widest text-center bg-primary/[0.03]">
+              <div className="md:col-span-2 p-6 md:p-8 text-[10px] font-semibold text-primary uppercase tracking-widest text-center bg-primary/[0.03]">
                 GasLulus Experience
               </div>
             </div>

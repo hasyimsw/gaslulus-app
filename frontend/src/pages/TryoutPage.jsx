@@ -24,9 +24,11 @@ export default function TryoutPage() {
   const [subjects, setSubjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [mode, setMode] = useState("SIMULATION");
-  const [activeCategory, setActiveCategory] = useState(searchParams.get("category") || "Semua");
+  const [activeCategory, setActiveCategory] = useState(
+    searchParams.get("category") || "Semua",
+  );
   const [search, setSearch] = useState("");
-  
+
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 9;
@@ -34,13 +36,24 @@ export default function TryoutPage() {
   useEffect(() => {
     setLoading(true);
     if (mode === "SIMULATION") {
-      const params = activeCategory !== "Semua" ? `?category=${activeCategory}` : "";
-      api.get(`/exams${params}`).then((r) => {
-        const order = { SD: 1, SMP: 2, SMA: 3, CPNS: 4 };
-        setExams(r.data.data.sort((a, b) => (order[a.category] || 99) - (order[b.category] || 99)));
-      }).finally(() => setLoading(false));
+      const params =
+        activeCategory !== "Semua" ? `?category=${activeCategory}` : "";
+      api
+        .get(`/exams${params}`)
+        .then((r) => {
+          const order = { SD: 1, SMP: 2, SMA: 3, CPNS: 4 };
+          setExams(
+            r.data.data.sort(
+              (a, b) => (order[a.category] || 99) - (order[b.category] || 99),
+            ),
+          );
+        })
+        .finally(() => setLoading(false));
     } else {
-      api.get(`/exams/subjects/${activeCategory}`).then((res) => setSubjects(res.data.data)).finally(() => setLoading(false));
+      api
+        .get(`/exams/subjects/${activeCategory}`)
+        .then((res) => setSubjects(res.data.data))
+        .finally(() => setLoading(false));
     }
   }, [activeCategory, mode]);
 
@@ -56,15 +69,20 @@ export default function TryoutPage() {
       icon: "question",
       showCancelButton: true,
       confirmButtonText: "Ya, Mulai!",
-      cancelButtonText: "Batal"
+      cancelButtonText: "Batal",
     }).then((result) => {
       if (result.isConfirmed) navigate(`/exam/${id}`);
     });
   };
 
-  const currentData = mode === "SIMULATION" 
-    ? exams.filter(e => e.title.toLowerCase().includes(search.toLowerCase()))
-    : subjects.filter(s => s.subject.toLowerCase().includes(search.toLowerCase()));
+  const currentData =
+    mode === "SIMULATION"
+      ? exams.filter((e) =>
+          e.title.toLowerCase().includes(search.toLowerCase()),
+        )
+      : subjects.filter((s) =>
+          s.subject.toLowerCase().includes(search.toLowerCase()),
+        );
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -74,8 +92,12 @@ export default function TryoutPage() {
   return (
     <div className="space-y-12 pb-24">
       <div>
-        <h1 className="text-3xl text-slate-900 tracking-tight">Daftar <span className="text-amber-500 font-black">Tryout.</span></h1>
-        <p className="text-slate-500 font-medium">Asah kemampuanmu dengan paket ujian terpercaya.</p>
+        <h1 className="text-3xl font-bold text-primary tracking-tight">
+          Daftar <span className="text-amber-500 font-bold">Tryout.</span>
+        </h1>
+        <p className="text-slate-500 font-medium">
+          Asah kemampuanmu dengan paket ujian terpercaya.
+        </p>
       </div>
 
       <div className="flex bg-slate-100/80 p-1 rounded-2xl w-fit border border-slate-200/50 shadow-sm">
@@ -104,9 +126,13 @@ export default function TryoutPage() {
         </div>
 
         <div className="w-full xl:max-w-sm">
-          <Input 
-            icon={<HiOutlineSearch />} 
-            placeholder={mode === "SIMULATION" ? "Cari paket tryout..." : "Cari mata pelajaran..."}
+          <Input
+            icon={<HiOutlineSearch />}
+            placeholder={
+              mode === "SIMULATION"
+                ? "Cari paket tryout..."
+                : "Cari mata pelajaran..."
+            }
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="rounded-full shadow-md shadow-[#011F7B]/10 bg-white"
@@ -117,19 +143,39 @@ export default function TryoutPage() {
       {loading ? (
         <div className="flex flex-col items-center justify-center py-32 gap-4">
           <div className="w-10 h-10 border-2 border-slate-200 border-t-[#011F7B] rounded-full animate-spin" />
-          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Memuat...</p>
+          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
+            Memuat...
+          </p>
         </div>
       ) : (
         <div className="space-y-12">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {paginatedData.map((item, i) => (
-              <motion.div key={i} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.05 }}
+              >
                 <Card className="p-8 h-full flex flex-col group" hoverable>
                   <div className="flex justify-between items-start mb-6">
-                    <Badge variant={item.category === 'CPNS' ? 'danger' : item.category === 'SMA' ? 'warning' : item.category === 'SMP' ? 'primary' : 'success'}>
+                    <Badge
+                      variant={
+                        item.category === "CPNS"
+                          ? "danger"
+                          : item.category === "SMA"
+                            ? "warning"
+                            : item.category === "SMP"
+                              ? "primary"
+                              : "success"
+                      }
+                    >
                       {item.category}
                     </Badge>
-                    <HiOutlineBookOpen className="text-slate-200 group-hover:text-[#011F7B]/30 transition-colors" size={24} />
+                    <HiOutlineBookOpen
+                      className="text-slate-200 group-hover:text-[#011F7B]/30 transition-colors"
+                      size={24}
+                    />
                   </div>
 
                   <div className="flex-1">
@@ -137,24 +183,45 @@ export default function TryoutPage() {
                       {mode === "SIMULATION" ? item.title : item.subject}
                     </h3>
                     <p className="text-sm text-slate-500 font-medium leading-relaxed line-clamp-2">
-                      {mode === "SIMULATION" ? (item.description || "Simulasi ujian lengkap terstandar.") : `Latihan soal khusus mata pelajaran ${item.subject}.`}
+                      {mode === "SIMULATION"
+                        ? item.description ||
+                          "Simulasi ujian lengkap terstandar."
+                        : `Latihan soal khusus mata pelajaran ${item.subject}.`}
                     </p>
                   </div>
 
                   <div className="mt-8 flex items-center gap-6 py-4 border-t border-slate-50">
                     <div className="flex items-center gap-2">
-                      {mode === "SIMULATION" ? <HiOutlineBookOpen className="text-[#011F7B]/40" /> : <HiCheck className="text-emerald-400" />}
+                      {mode === "SIMULATION" ? (
+                        <HiOutlineBookOpen className="text-[#011F7B]/40" />
+                      ) : (
+                        <HiCheck className="text-emerald-400" />
+                      )}
                       <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                        {(item._count?.questions !== undefined ? item._count.questions : item.totalQuestions) || 0} Soal
+                        {(item._count?.questions !== undefined
+                          ? item._count.questions
+                          : item.totalQuestions) || 0}{" "}
+                        Soal
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
                       <HiOutlineClock className="text-[#011F7B]/40" />
-                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{item.duration || 30} Menit</span>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                        {item.duration || 30} Menit
+                      </span>
                     </div>
                   </div>
 
-                  <Button className="mt-6 w-full" onClick={() => handleStart(item.id, mode === "SIMULATION" ? "Ujian" : "Latihan")} icon={HiOutlineChevronRight}>
+                  <Button
+                    className="mt-6 w-full"
+                    onClick={() =>
+                      handleStart(
+                        item.id,
+                        mode === "SIMULATION" ? "Ujian" : "Latihan",
+                      )
+                    }
+                    icon={HiOutlineChevronRight}
+                  >
                     {mode === "SIMULATION" ? "Mulai Ujian" : "Mulai Latihan"}
                   </Button>
                 </Card>
@@ -165,9 +232,19 @@ export default function TryoutPage() {
           {totalPages > 1 && (
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-12 border-t border-slate-100">
               <span className="text-sm text-slate-500 font-medium">
-                Menampilkan <span className="font-bold text-[#011F7B]">{indexOfFirstItem + 1}</span> -{" "}
-                <span className="font-bold text-[#011F7B]">{Math.min(indexOfLastItem, currentData.length)}</span> dari{" "}
-                <span className="font-bold text-[#011F7B]">{currentData.length}</span> tryout
+                Menampilkan{" "}
+                <span className="font-bold text-[#011F7B]">
+                  {indexOfFirstItem + 1}
+                </span>{" "}
+                -{" "}
+                <span className="font-bold text-[#011F7B]">
+                  {Math.min(indexOfLastItem, currentData.length)}
+                </span>{" "}
+                dari{" "}
+                <span className="font-bold text-[#011F7B]">
+                  {currentData.length}
+                </span>{" "}
+                tryout
               </span>
               <div className="flex items-center gap-2">
                 <button
@@ -177,21 +254,23 @@ export default function TryoutPage() {
                 >
                   Sebelumnya
                 </button>
-                
+
                 <div className="flex gap-1.5">
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                    <button
-                      key={page}
-                      onClick={() => setCurrentPage(page)}
-                      className={`w-10 h-10 rounded-xl text-sm font-bold transition-all ${
-                        currentPage === page
-                          ? "bg-[#011F7B] text-white shadow-lg shadow-[#011F7B]/20"
-                          : "border border-slate-200 text-slate-600 hover:bg-slate-50"
-                      }`}
-                    >
-                      {page}
-                    </button>
-                  ))}
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                    (page) => (
+                      <button
+                        key={page}
+                        onClick={() => setCurrentPage(page)}
+                        className={`w-10 h-10 rounded-xl text-sm font-bold transition-all ${
+                          currentPage === page
+                            ? "bg-[#011F7B] text-white shadow-lg shadow-[#011F7B]/20"
+                            : "border border-slate-200 text-slate-600 hover:bg-slate-50"
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    ),
+                  )}
                 </div>
 
                 <button
@@ -210,11 +289,14 @@ export default function TryoutPage() {
       {!loading && currentData.length === 0 && (
         <div className="text-center py-32 flex flex-col items-center">
           <div className="text-5xl mb-4 opacity-20">🔎</div>
-          <h3 className="text-lg font-bold text-slate-900">Tidak ada data ditemukan</h3>
-          <p className="text-slate-500 text-sm">Coba sesuaikan kategori atau kata kunci pencarian Anda.</p>
+          <h3 className="text-lg font-bold text-slate-900">
+            Tidak ada data ditemukan
+          </h3>
+          <p className="text-slate-500 text-sm">
+            Coba sesuaikan kategori atau kata kunci pencarian Anda.
+          </p>
         </div>
       )}
     </div>
   );
 }
-

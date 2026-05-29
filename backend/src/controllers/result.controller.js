@@ -68,7 +68,14 @@ export const getDashboardStats = async (req, res, next) => {
       take: 5,
     });
 
-    const totalPassed = await prisma.result.count({ where: { userId, score: { gte: 60 } } });
+    const allResults = await prisma.result.findMany({
+      where: { userId },
+      select: {
+        score: true,
+        exam: { select: { passingScore: true } },
+      },
+    });
+    const totalPassed = allResults.filter(r => r.score >= r.exam.passingScore).length;
 
     return res.json({
       success: true,
